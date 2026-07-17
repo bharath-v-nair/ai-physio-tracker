@@ -1,0 +1,267 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Card } from '../components/ui/Card';
+import { Send, Bot, User, Paperclip, MessageSquare, Loader2 } from 'lucide-react';
+
+export const Assistant = () => {
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch sessions on mount
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  const fetchSessions = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/v1/chat/sessions', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSessions(data);
+        if (data.length > 0 && !activeSessionId) {
+          loadSession(data[0].id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch sessions:", err);
+    }
+  };
+
+  const loadSession = async (sessionId: number) => {
+    setActiveSessionId(sessionId);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/v1/chat/sessions/${sessionId}/messages`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data);
+        scrollToBottom();
+      }
+    } catch (err) {
+      console.error("Failed to load messages:", err);
+    }
+  };
+
+  const createNewSession = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/v1/chat/sessions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const newSession = await res.json();
+        setSessions([newSession, ...sessions]);
+        setActiveSessionId(newSession.id);
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error("Failed to create session:", err);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return;
+    
+    let currentSessionId = activeSessionId;
+    
+    // If no active session, create one first
+    if (!currentSessionId) {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://127.0.0.1:8000/api/v1/chat/sessions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const newSession = await res.json();
+      setSessions([newSession, ...sessions]);
+      currentSessionId = newSession.id;
+      setActiveSessionId(newSession.id);
+    }
+
+    const newMessageText = input;
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: newMessageText, sources: [] }]);
+    setIsLoading(true);
+    scrollToBottom();
+
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/v1/chat/sessions/${currentSessionId}/message`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: newMessageText })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(prev => [...prev, data]);
+        // Refresh sessions to get updated title
+        fetchSessions();
+      } else {
+        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.', sources: [] }]);
+      }
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error. Is the backend running?', sources: [] }]);
+    } finally {
+      setIsLoading(false);
+      scrollToBottom();
+    }
+  };
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <div className="h-[calc(100vh-6rem)] flex flex-col md:flex-row gap-6 animate-in fade-in duration-500">
+      
+      {/* Sidebar - Sessions */}
+      <div className="w-full md:w-64 flex flex-col gap-4">
+        <button 
+          onClick={createNewSession}
+          className="w-full py-3 bg-[#4F8EF7] text-white rounded-xl font-medium hover:bg-[#3B72C6] transition-colors flex items-center justify-center gap-2 shadow-sm"
+        >
+          <MessageSquare className="w-4 h-4" />
+          New Chat
+        </button>
+        
+        <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+          {sessions.map(s => (
+            <div 
+              key={s.id} 
+              onClick={() => loadSession(s.id)}
+              className={`p-3 rounded-xl cursor-pointer transition-colors text-sm truncate ${activeSessionId === s.id ? 'bg-blue-50 border-blue-200 border text-blue-700 font-medium' : 'bg-white border border-gray-100 text-gray-600 hover:bg-gray-50'}`}
+            >
+              {s.title}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Chat Area */}
+      <Card className="flex-1 flex flex-col overflow-hidden shadow-lg border-gray-200/60">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50/50">
+          
+          {messages.length === 0 && !isLoading && (
+            <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 space-y-4">
+               <Bot className="w-12 h-12 text-gray-300" />
+               <p>Send a message to start a new conversation with your AI Physio Assistant.</p>
+            </div>
+          )}
+
+          {messages.map((msg, i) => (
+            <div key={i} className={`flex items-start max-w-3xl ${msg.role === 'user' ? 'justify-end ml-auto' : ''}`}>
+              
+              {msg.role === 'assistant' && (
+                <div className="w-8 h-8 rounded-full bg-[#4F8EF7] flex items-center justify-center shrink-0 shadow-sm mr-4">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+              )}
+
+              <div className={`p-4 rounded-2xl shadow-sm text-sm md:text-base ${
+                msg.role === 'user' 
+                  ? 'bg-[#4F8EF7] text-white rounded-tr-sm' 
+                  : 'bg-white border border-gray-100 text-gray-700 rounded-tl-sm'
+              }`}>
+                {msg.role === 'assistant' ? (
+                  <div className="prose prose-sm md:prose-base max-w-none whitespace-pre-wrap">
+                    {msg.content}
+                  </div>
+                ) : (
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                )}
+                
+                {/* Citations/Sources */}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-400 mb-2 font-medium">SOURCES:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {msg.sources.map((src: string, idx: number) => (
+                        <span key={idx} className="text-xs px-2 py-1 bg-gray-50 border border-gray-200 rounded text-gray-500">
+                          {src}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {msg.role === 'user' && (
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0 ml-4">
+                  <User className="w-5 h-5 text-gray-500" />
+                </div>
+              )}
+            </div>
+          ))}
+
+          {isLoading && (
+            <div className="flex items-start max-w-3xl">
+              <div className="w-8 h-8 rounded-full bg-[#4F8EF7] flex items-center justify-center shrink-0 shadow-sm mr-4">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div className="bg-white p-4 rounded-2xl rounded-tl-sm shadow-sm border border-gray-100 flex items-center gap-2 text-gray-500">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Thinking...</span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 bg-white border-t border-gray-100">
+          <div className="max-w-4xl mx-auto flex items-end space-x-2">
+            <button className="p-3 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-50 shrink-0">
+              <Paperclip className="w-6 h-6" />
+            </button>
+            <div className="flex-1 bg-gray-50 rounded-2xl border border-gray-200 px-4 py-2 md:py-3 focus-within:ring-2 focus-within:ring-[#4F8EF7] focus-within:border-transparent transition-all shadow-inner flex items-center">
+              <textarea 
+                rows={1}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask your AI physio about posture, exercises, or recovery..."
+                className="w-full bg-transparent resize-none focus:outline-none text-gray-700 placeholder-gray-400 py-1"
+                style={{ minHeight: '28px', maxHeight: '120px' }}
+              />
+            </div>
+            <button 
+              onClick={sendMessage}
+              disabled={isLoading || !input.trim()}
+              className="p-3 bg-[#4F8EF7] text-white rounded-full hover:bg-[#3B72C6] transition-colors shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Send className="w-5 h-5 ml-0.5" />
+            </button>
+          </div>
+          
+          <div className="max-w-4xl mx-auto mt-4 flex flex-wrap gap-2 justify-center">
+             <span onClick={() => setInput("Suggest desk exercises")} className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-gray-600 cursor-pointer hover:bg-gray-100">Suggest desk exercises</span>
+             <span onClick={() => setInput("What does my latest assessment mean?")} className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-gray-600 cursor-pointer hover:bg-gray-100">Analyze my last session</span>
+             <span onClick={() => setInput("Why does my neck hurt?")} className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-gray-600 cursor-pointer hover:bg-gray-100">Why does my neck hurt?</span>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+};
