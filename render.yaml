@@ -3,6 +3,7 @@ services:
     name: physioai-backend
     env: python
     rootDir: backend
+    plan: free
     buildCommand: "pip install -r requirements.txt"
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
@@ -19,3 +20,4 @@ databases:
   - name: physioai-db
     databaseName: physioai
     user: physioai_user
+    plan: free
