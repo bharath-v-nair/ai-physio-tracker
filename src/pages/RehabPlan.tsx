@@ -12,7 +12,7 @@ export const RehabPlan = () => {
   const fetchPlan = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/rehab/active', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/rehab/active`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -33,7 +33,7 @@ export const RehabPlan = () => {
   const handleTrack = async (exerciseId: number, skipped: boolean) => {
     const token = localStorage.getItem('token');
     try {
-      await fetch('http://127.0.0.1:8000/api/v1/rehab/track', {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/rehab/track`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

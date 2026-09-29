@@ -55,6 +55,9 @@ class ChinTucksAnalyzer(BaseExerciseAnalyzer):
                 self.current_rep_score = max(50.0, self.current_rep_score - 0.5)
                 self.feedback = "Don't tilt head up; pull chin back."
                 status = "Needs Improvement"
+            elif diff <= 0.01: # Aborted movement, returned to rest
+                self.state = RepState.REST
+                self.feedback = "Pull your chin straight back towards your neck."
             else:
                 self.feedback = "Keep pulling chin back."
 

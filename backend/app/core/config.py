@@ -9,8 +9,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     
     DATABASE_URL: str = "sqlite:///./physioai.db"
-    GROQ_API_KEY: str = "your-groq-api-key-here"
+    
+    GEMINI_API_KEY: str = "your_key_here"
+    GEMINI_MODEL: str = "gemini-flash-latest"
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()

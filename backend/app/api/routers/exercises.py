@@ -60,6 +60,17 @@ def create_exercise_session(session_in: ExerciseSessionCreate, db: SessionDep, c
     db.refresh(session_db)
     return session_db
 
+@router.get("/sessions", response_model=List[ExerciseSessionInDB])
+def get_exercise_sessions(db: SessionDep, current_user: CurrentUser):
+    # Retrieve sessions belonging to the current user, ordered by most recent
+    sessions = (
+        db.query(ExerciseSession)
+        .filter(ExerciseSession.user_id == current_user.id)
+        .order_by(ExerciseSession.completed_at.desc())
+        .all()
+    )
+    return sessions
+
 @router.websocket("/ws/live")
 async def live_exercise_endpoint(websocket: WebSocket, token: str = Query(...), exercise_name: str = Query(...), db = Depends(get_db)):
     await websocket.accept()
@@ -79,6 +90,22 @@ async def live_exercise_endpoint(websocket: WebSocket, token: str = Query(...), 
             if message.get("type") == "frame":
                 frame_data = message.get("data")
                 landmarks, dims = pose_detector.process_frame(frame_data)
+                
+                analysis = analyzer.analyze(landmarks, dims)
+                
+                await websocket.send_json({
+                    "type": "analysis_result",
+                    "data": {
+                        "reps": analysis["reps"],
+                        "form_score": analysis["form_score"],
+                        "status": analysis["status"],
+                        "feedback": analysis["feedback"],
+                        "landmarks": landmarks
+                    }
+                })
+            elif message.get("type") == "landmarks":
+                landmarks = message.get("data")
+                dims = message.get("dimensions", (640, 480))
                 
                 analysis = analyzer.analyze(landmarks, dims)
                 

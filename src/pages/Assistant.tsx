@@ -1,14 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Send, Bot, User, Paperclip, MessageSquare, Loader2 } from 'lucide-react';
 
 export const Assistant = () => {
+  const location = useLocation();
   const [sessions, setSessions] = useState<any[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Pre-fill input if navigated with context_exercise
+  useEffect(() => {
+    if (location.state?.context_exercise) {
+      setInput(`Can you explain how I should perform ${location.state.context_exercise}?`);
+      // Optionally auto-send or let user hit send
+    }
+  }, [location.state]);
 
   // Fetch sessions on mount
   useEffect(() => {
@@ -18,7 +28,7 @@ export const Assistant = () => {
   const fetchSessions = async () => {
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/v1/chat/sessions', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/chat/sessions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -37,7 +47,7 @@ export const Assistant = () => {
     setActiveSessionId(sessionId);
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/chat/sessions/${sessionId}/messages`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/chat/sessions/${sessionId}/messages`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -53,7 +63,7 @@ export const Assistant = () => {
   const createNewSession = async () => {
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/v1/chat/sessions', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/chat/sessions`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -76,7 +86,7 @@ export const Assistant = () => {
     // If no active session, create one first
     if (!currentSessionId) {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://127.0.0.1:8000/api/v1/chat/sessions', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/chat/sessions`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -94,13 +104,18 @@ export const Assistant = () => {
 
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/chat/sessions/${currentSessionId}/message`, {
+      const payload: any = { content: newMessageText };
+      if (location.state?.context_exercise) {
+         payload.context_exercise = location.state.context_exercise;
+      }
+        
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/chat/sessions/${currentSessionId}/message`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ content: newMessageText })
+        body: JSON.stringify(payload)
       });
       
       if (res.ok) {

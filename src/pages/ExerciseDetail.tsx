@@ -15,7 +15,7 @@ export const ExerciseDetail = () => {
     const fetchExercise = async () => {
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/v1/exercises`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/exercises`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -64,9 +64,27 @@ export const ExerciseDetail = () => {
           <h1 className="text-4xl font-bold tracking-tight">{exercise.name}</h1>
           <p className="mt-2 text-gray-200 max-w-2xl">{exercise.description}</p>
           <div className="mt-6 flex gap-4">
-            <Button onClick={() => navigate(`/dashboard/exercises/${exercise.id}/live`)} size="lg" className="bg-[#4F8EF7] hover:bg-blue-600 text-white border-0 shadow-lg shadow-blue-900/20">
-              <PlayCircle className="w-5 h-5 mr-2" />
-              Start Live Exercise
+            {exercise.name === 'Chin Tucks' ? (
+                <Button onClick={() => navigate(`/dashboard/exercises/${exercise.id}/live`)} size="lg" className="bg-[#4F8EF7] hover:bg-blue-600 text-white border-0 shadow-lg shadow-blue-900/20">
+                <PlayCircle className="w-5 h-5 mr-2" />
+                Start Live Exercise
+                </Button>
+            ) : (
+                <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+                    <p className="text-sm font-medium text-white flex items-center">
+                        <AlertTriangle className="w-4 h-4 mr-2 text-yellow-300" />
+                        Live analysis is currently available for Chin Tucks.
+                    </p>
+                </div>
+            )}
+            <Button 
+                onClick={() => navigate('/assistant', { state: { context_exercise: exercise.name } })}
+                variant="outline" 
+                size="lg" 
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-md transition-colors"
+            >
+                <Lightbulb className="w-5 h-5 mr-2" />
+                Ask AI about this exercise
             </Button>
           </div>
         </div>

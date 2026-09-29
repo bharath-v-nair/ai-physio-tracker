@@ -23,12 +23,12 @@ export const Exercises = () => {
 
   const selectedIssue = searchParams.get('issue') || '';
 
-  const fetchRecommendations = async (issue: str) => {
+  const fetchRecommendations = async (issue: string) => {
     setLoading(true);
     setError(false);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/v1/rehab/recommendations', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/rehab/recommendations`, {
           method: 'POST',
           headers: { 
             'Authorization': `Bearer ${token}`,

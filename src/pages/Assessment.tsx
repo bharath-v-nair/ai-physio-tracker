@@ -37,7 +37,7 @@ export const Assessment = () => {
       // Get token from localStorage (assuming it's stored as 'token' or inside 'auth')
       const token = localStorage.getItem('token') || '';
       
-      const wsUrl = `ws://127.0.0.1:8000/api/v1/assessments/ws/live?token=${token}`;
+      const wsUrl = `${(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').replace('http', 'ws')}/api/v1/assessments/ws/live?token=${token}`;
       const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {
@@ -158,7 +158,7 @@ export const Assessment = () => {
         
       const token = localStorage.getItem('token');
       // 1. Save Assessment
-      const response = await fetch('http://127.0.0.1:8000/api/v1/assessments', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/assessments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

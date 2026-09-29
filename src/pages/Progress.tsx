@@ -11,7 +11,7 @@ export const Progress = () => {
     const fetchHistory = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/v1/rehab/history', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/rehab/history`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {

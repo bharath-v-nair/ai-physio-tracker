@@ -30,7 +30,7 @@ export const AssessmentReport = () => {
         // Since we don't have a GET /assessment/:id endpoint easily accessible,
         // we can fetch history and find it, or assume backend can provide it.
         // Actually, let's hit history and pick the right one.
-        const histRes = await fetch('http://127.0.0.1:8000/api/v1/assessments/history', {
+        const histRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/assessments/history`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -41,7 +41,7 @@ export const AssessmentReport = () => {
           
           if (target && target.detected_issue) {
              const issues = target.detected_issue.split(',').map((i: string) => i.trim());
-             const recRes = await fetch('http://127.0.0.1:8000/api/v1/rehab/recommendations', {
+             const recRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/rehab/recommendations`, {
                method: 'POST',
                headers: { 
                  'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export const AssessmentReport = () => {
     setGenerating(true);
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/rehab/generate?assessment_id=${assessment.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/rehab/generate?assessment_id=${assessment.id}`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
       });

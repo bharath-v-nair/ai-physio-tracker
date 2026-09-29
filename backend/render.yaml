@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: physioai-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: physioai-db
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false # You will need to enter this in the Render Dashboard
+      - key: GEMINI_MODEL
+        value: gemini-flash-latest
+
+databases:
+  - name: physioai-db
+    databaseName: physioai
+    user: physioai_user
