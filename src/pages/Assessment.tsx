@@ -12,11 +12,45 @@ interface Issue {
   recommendation: string;
 }
 
+interface Measurements {
+  head_offset_pct?: number;
+  shoulder_tilt_deg?: number;
+  trunk_lean?: string | null;
+  side_on?: boolean;
+  neck_angle_deg?: number | null;
+}
+
 interface AnalysisResult {
-  score: number;
+  score: number | null;
   issues: Issue[];
   confidence: number;
+  view?: 'front' | 'side';
+  measurements?: Measurements | null;
 }
+
+type Step = 'front' | 'side';
+
+// How long each view is measured for
+const FRONT_SECONDS = 6;
+const SIDE_SECONDS = 3;
+
+const median = (values: number[]) => {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+};
+
+const mostCommon = (values: string[]) => {
+  const counts: Record<string, number> = {};
+  values.forEach(v => { counts[v] = (counts[v] || 0) + 1; });
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+};
+
+const speak = (text: string) => {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+};
 
 export const Assessment = () => {
   const [isActive, setIsActive] = useState(false);
@@ -25,6 +59,13 @@ export const Assessment = () => {
   const [sessionScores, setSessionScores] = useState<number[]>([]);
   // How many scored frames showed each issue, so the saved result reflects the whole session
   const issueCountsRef = useRef<Record<string, number>>({});
+  // Guided check: front view first, then a short side view for the neck angle
+  const [step, setStep] = useState<Step>('front');
+  const stepRef = useRef<Step>('front');
+  const [progress, setProgress] = useState(0);
+  const frontRef = useRef<{ start: number; head: number[]; tilt: number[]; lean: string[] }>({ start: 0, head: [], tilt: [], lean: [] });
+  const sideRef = useRef<{ start: number; neck: number[] }>({ start: 0, neck: [] });
+  const savingRef = useRef(false);
   
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -53,11 +94,36 @@ export const Assessment = () => {
         try {
           const data = JSON.parse(event.data);
           if (data.analysis) {
-            setAnalysis(data.analysis);
-            if (data.analysis.score > 0) {
-              setSessionScores(prev => [...prev, data.analysis.score]);
-              for (const issue of data.analysis.issues as Issue[]) {
-                issueCountsRef.current[issue.name] = (issueCountsRef.current[issue.name] || 0) + 1;
+            const a: AnalysisResult = data.analysis;
+            const m = a.measurements;
+            const now = performance.now() / 1000;
+            if (a.view === 'side') {
+              if (m?.side_on && m.neck_angle_deg != null) {
+                const side = sideRef.current;
+                if (!side.start) side.start = now;
+                side.neck.push(m.neck_angle_deg);
+                setProgress(Math.min(1, (now - side.start) / SIDE_SECONDS));
+                if (now - side.start >= SIDE_SECONDS && side.neck.length >= 8) finishRef.current();
+              }
+            } else {
+              setAnalysis(a);
+              if (a.score && a.score > 0 && m) {
+                setSessionScores(prev => [...prev, a.score as number]);
+                for (const issue of a.issues) {
+                  issueCountsRef.current[issue.name] = (issueCountsRef.current[issue.name] || 0) + 1;
+                }
+                const front = frontRef.current;
+                if (!front.start) front.start = now;
+                if (m.head_offset_pct != null) front.head.push(m.head_offset_pct);
+                if (m.shoulder_tilt_deg != null) front.tilt.push(m.shoulder_tilt_deg);
+                if (m.trunk_lean) front.lean.push(m.trunk_lean);
+                setProgress(Math.min(1, (now - front.start) / FRONT_SECONDS));
+                if (stepRef.current === 'front' && now - front.start >= FRONT_SECONDS && front.head.length >= 10) {
+                  stepRef.current = 'side';
+                  setStep('side');
+                  setProgress(0);
+                  speak('Now turn your chair so one shoulder points at the screen, and look straight ahead.');
+                }
               }
             }
           }
@@ -83,7 +149,7 @@ export const Assessment = () => {
         if (canSend && webcamRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
           const imageSrc = webcamRef.current.getScreenshot();
           if (imageSrc) {
-            wsRef.current.send(JSON.stringify({ image: imageSrc }));
+            wsRef.current.send(JSON.stringify({ image: imageSrc, view: stepRef.current }));
             pendingSinceRef.current = now;
           }
         }
@@ -162,6 +228,8 @@ export const Assessment = () => {
   };
 
   const handleStopAndSave = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     setIsActive(false);
     setIsSaving(true);
     
@@ -186,7 +254,11 @@ export const Assessment = () => {
         body: JSON.stringify({
           posture_score: Math.round(avgScore),
           detected_issue: detectedIssue,
-          confidence: analysis?.confidence || 0
+          confidence: analysis?.confidence || 0,
+          head_offset_pct: median(frontRef.current.head),
+          shoulder_tilt_deg: median(frontRef.current.tilt),
+          trunk_lean: mostCommon(frontRef.current.lean),
+          neck_angle_deg: median(sideRef.current.neck)
         })
       });
       
@@ -198,7 +270,23 @@ export const Assessment = () => {
       console.error("Save failed", err);
     } finally {
       setIsSaving(false);
+      savingRef.current = false;
     }
+  };
+
+  // The side view finishes the check on its own; the socket handler calls the latest version
+  const finishRef = useRef(handleStopAndSave);
+  finishRef.current = handleStopAndSave;
+
+  const startCheck = () => {
+    setSessionScores([]);
+    issueCountsRef.current = {};
+    frontRef.current = { start: 0, head: [], tilt: [], lean: [] };
+    sideRef.current = { start: 0, neck: [] };
+    stepRef.current = 'front';
+    setStep('front');
+    setProgress(0);
+    setIsActive(true);
   };
 
   return (
@@ -211,7 +299,7 @@ export const Assessment = () => {
         
         <div className="flex space-x-3">
           {!isActive ? (
-            <Button onClick={() => setIsActive(true)} className="rounded-full px-6" disabled={isSaving}>
+            <Button onClick={startCheck} className="rounded-full px-6" disabled={isSaving}>
               <Play className="w-4 h-4 mr-2" />
               Start Assessment
             </Button>
@@ -219,7 +307,7 @@ export const Assessment = () => {
             <>
               <Button variant="danger" onClick={handleStopAndSave} className="rounded-full px-6">
                 <Save className="w-4 h-4 mr-2" />
-                Stop & Save
+                {step === 'side' ? 'Skip side view & save' : 'Stop & Save'}
               </Button>
             </>
           )}
@@ -248,8 +336,18 @@ export const Assessment = () => {
                 <div className="absolute top-4 left-4 z-20">
                   <Badge variant="success" className="bg-black/50 text-white border border-white/20 backdrop-blur-md">
                     <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
-                    Analyzing Live
+                    {step === 'front' ? 'Step 1 of 2: facing the camera' : 'Step 2 of 2: side view'}
                   </Badge>
+                </div>
+                <div className="absolute bottom-0 inset-x-0 z-20 p-4 bg-gradient-to-t from-black/70 to-transparent">
+                  <p className="text-white font-medium mb-2">
+                    {step === 'front'
+                      ? 'Sit tall, face the camera and keep still for a few seconds.'
+                      : 'Turn your chair so one shoulder points at the screen, and look straight ahead.'}
+                  </p>
+                  <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-400 rounded-full transition-all duration-200" style={{ width: `${progress * 100}%` }} />
+                  </div>
                 </div>
               </>
             ) : (
@@ -272,11 +370,11 @@ export const Assessment = () => {
                 <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Live Posture Score</h3>
                 <div className="flex items-baseline space-x-2">
                   <span className="text-5xl font-bold text-gray-900">
-                    {isActive ? (analysis?.score !== undefined ? Math.round(analysis.score) : '--') : '--'}
+                    {isActive ? (analysis?.score != null ? Math.round(analysis.score) : '--') : '--'}
                   </span>
                   <span className="text-gray-500">/100</span>
                 </div>
-                {isActive && analysis && (
+                {isActive && analysis && analysis.score != null && (
                   <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div 
                       className={`h-full rounded-full transition-all duration-300 ${analysis.score > 80 ? 'bg-green-500' : analysis.score > 60 ? 'bg-orange-500' : 'bg-red-500'}`} 

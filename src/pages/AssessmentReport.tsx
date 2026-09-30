@@ -5,6 +5,14 @@ import { Badge } from '../components/ui/Badge';
 import { Download, Save, CheckCircle2, AlertTriangle, ArrowLeft, Loader2, PlayCircle } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
+const LEAN_LABELS: Record<string, string> = {
+  TUP: 'Upright',
+  TLF: 'Leaning forward',
+  TLB: 'Leaning backward',
+  TLL: 'Leaning left',
+  TLR: 'Leaning right',
+};
+
 export const AssessmentReport = () => {
   const [assessment, setAssessment] = useState<any>(null);
   const [recommendations, setRecommendations] = useState<any[]>([]);
@@ -168,6 +176,22 @@ export const AssessmentReport = () => {
                    <p className="text-sm text-gray-600 mt-1">No major postural issues detected.</p>
                  </div>
                </div>
+             )}
+
+             {assessment.head_offset_pct != null && (
+               <dl className="divide-y divide-gray-100 border-t border-gray-100 pt-2 text-sm">
+                 {[
+                   ['Head position', `${assessment.head_offset_pct.toFixed(1)}% of shoulder width off centre`, 'flagged above 12%'],
+                   ['Shoulder level', `${assessment.shoulder_tilt_deg?.toFixed(1)}° tilt`, 'flagged above 5°'],
+                   ['Trunk', LEAN_LABELS[assessment.trunk_lean] ?? 'Not measured (hips not in view)', 'trained on expert-labelled posture data'],
+                   ['Neck angle (side view)', assessment.neck_angle_deg != null ? `${assessment.neck_angle_deg.toFixed(1)}°` : 'Side view skipped', 'higher means the head sits further back; compare with your earlier checks'],
+                 ].map(([label, value, note]) => (
+                   <div key={label} className="py-2">
+                     <dt className="text-gray-500">{label}</dt>
+                     <dd className="font-medium text-gray-900">{value} <span className="font-normal text-gray-400">({note})</span></dd>
+                   </div>
+                 ))}
+               </dl>
              )}
           </CardContent>
         </Card>
