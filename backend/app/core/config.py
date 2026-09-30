@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     
     GEMINI_API_KEY: str = "your_key_here"
     GEMINI_MODEL: str = "gemini-flash-latest"
+    # Tried in order if GEMINI_MODEL is busy or unavailable
+    GEMINI_FALLBACK_MODELS: str = "gemini-3.5-flash,gemini-3.5-flash-lite"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
