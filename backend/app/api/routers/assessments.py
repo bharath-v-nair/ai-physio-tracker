@@ -31,9 +31,11 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...), db =
         while True:
             data = await websocket.receive_text()
             # Try parsing JSON if client sends structured data, or base64 directly
+            view = "front"
             try:
                 frame_data = json.loads(data)
                 base64_img = frame_data.get("image")
+                view = frame_data.get("view", "front")
             except:
                 base64_img = data
                 
@@ -43,8 +45,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...), db =
                 
             # Process in thread pool to avoid blocking async loop
             # For simplicity in this sprint, we run it directly (mediapipe is fast)
-            landmarks, (w, h) = pose_detector.process_frame(base64_img)
-            analysis = posture_analyzer.analyze(landmarks)
+            landmarks, world, (w, h) = pose_detector.process_frame_with_world(base64_img)
+            analysis = posture_analyzer.analyze(landmarks, world, (w, h), view)
             recorder.record(landmarks, analysis)
             
             await websocket.send_json({
@@ -75,7 +77,11 @@ def create_assessment(assessment_in: AssessmentCreate, db: SessionDep, current_u
         user_id=current_user.id,
         posture_score=assessment_in.posture_score,
         detected_issue=assessment_in.detected_issue,
-        confidence=assessment_in.confidence
+        confidence=assessment_in.confidence,
+        head_offset_pct=assessment_in.head_offset_pct,
+        shoulder_tilt_deg=assessment_in.shoulder_tilt_deg,
+        trunk_lean=assessment_in.trunk_lean,
+        neck_angle_deg=assessment_in.neck_angle_deg,
     )
     db.add(assessment_db)
     db.commit()

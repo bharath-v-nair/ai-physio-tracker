@@ -32,9 +32,17 @@ class PoseDetector:
         """
         Process the base64 frame, return landmarks and image dimensions.
         """
+        landmarks, _, dims = self.process_frame_with_world(base64_string)
+        return landmarks, dims
+
+    def process_frame_with_world(self, base64_string: str):
+        """
+        Like process_frame, but also returns MediaPipe's world landmarks
+        (3D, in metres, centred on the hips), which the posture model uses.
+        """
         image = self.decode_frame(base64_string)
         if image is None:
-            return [], (0, 0)
+            return [], [], (0, 0)
             
         # Convert BGR to RGB for MediaPipe
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -52,8 +60,13 @@ class PoseDetector:
                     "visibility": lm.visibility
                 })
                 
+        world = []
+        if results.pose_world_landmarks:
+            for lm in results.pose_world_landmarks.landmark:
+                world.append({"x": lm.x, "y": lm.y, "z": lm.z})
+
         h, w, _ = image.shape
-        return landmarks, (w, h)
+        return landmarks, world, (w, h)
         
     def __del__(self):
         self.pose.close()

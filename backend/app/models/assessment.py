@@ -11,6 +11,12 @@ class Assessment(Base):
     posture_score = Column(Float, nullable=False)
     detected_issue = Column(String, nullable=True)
     confidence = Column(Float, nullable=False)
+
+    # Measurements behind the score (medians over the check)
+    head_offset_pct = Column(Float, nullable=True)     # ear midpoint off the shoulder midpoint, % of shoulder width
+    shoulder_tilt_deg = Column(Float, nullable=True)
+    trunk_lean = Column(String, nullable=True)         # posture model class, e.g. TUP (upright); None if hips not in view
+    neck_angle_deg = Column(Float, nullable=True)      # side view; None if the side check was skipped
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
