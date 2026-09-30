@@ -12,9 +12,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./physioai.db"
     
     GEMINI_API_KEY: str = "your_key_here"
-    GEMINI_MODEL: str = "gemini-flash-latest"
+    GEMINI_MODEL: str = "gemini-3.5-flash"
     # Tried in order if GEMINI_MODEL is busy or unavailable
-    GEMINI_FALLBACK_MODELS: str = "gemini-3.5-flash,gemini-3.5-flash-lite"
+    GEMINI_FALLBACK_MODELS: str = "gemini-3.5-flash,gemini-3.5-flash-lite,gemini-flash-latest"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

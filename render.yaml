@@ -15,6 +15,6 @@ services:
       - key: GEMINI_API_KEY
         sync: false # Paste the Google AI Studio key in the Render Dashboard
       - key: GEMINI_MODEL
-        value: gemini-flash-latest
+        value: gemini-3.5-flash
       - key: SECRET_KEY
         generateValue: true

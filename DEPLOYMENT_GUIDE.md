@@ -135,7 +135,7 @@ The code must be in a GitHub repository. Every service below reads it from there
    | `PYTHON_VERSION` | `3.11.8` |
    | `DATABASE_URL` | the Neon connection string |
    | `GEMINI_API_KEY` | the Gemini key |
-   | `GEMINI_MODEL` | `gemini-flash-latest` |
+   | `GEMINI_MODEL` | `gemini-3.5-flash` |
    | `SECRET_KEY` | any long random text (e.g. mash the keyboard for 40 characters) |
 
 6. Click **Deploy Web Service**. The first build takes about 5–10 minutes. Wait until it says **Live**.
@@ -145,11 +145,12 @@ The code must be in a GitHub repository. Every service below reads it from there
 ### Step 5: Frontend on Vercel
 1. Go to https://vercel.com → sign up with GitHub (Hobby plan).
 2. **Add New…** → **Project** → **Import** `ai-physio-tracker`.
-3. Framework Preset: **Vite** (detected automatically). Root Directory: leave as `./`.
-4. Open **Environment Variables** and add:
+3. Vercel may show "Multiple applications detected" with the Application Preset set to **Services**, listing `physioai-backend (FastAPI)` and `app (Vite)`. Click **Import single project** on the **`app` (Vite)** row only. The backend stays on Render: Vercel's Python hosting can't keep WebSocket connections open and has a package size limit that MediaPipe exceeds.
+4. Framework Preset: **Vite**. Root Directory: leave as `./`.
+5. Open **Environment Variables** and add:
    - Key: `VITE_API_URL`
    - Value: your Render address, e.g. `https://physioai-backend.onrender.com` (**no** `/` at the end)
-5. Click **Deploy**. After about a minute you get a link like `https://ai-physio-tracker.vercel.app`.
+6. Click **Deploy**. After about a minute you get a link like `https://ai-physio-tracker.vercel.app`.
 
 > If you ever change `VITE_API_URL`, go to Vercel → Project → Deployments → ⋯ → **Redeploy**. The value is baked in at build time.
 

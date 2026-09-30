@@ -9,7 +9,11 @@ class GeminiService:
         self.fallback_models = [m.strip() for m in settings.GEMINI_FALLBACK_MODELS.split(",") if m.strip()]
 
         if self.api_key and self.api_key != "your_key_here":
-            self.client = genai.Client(api_key=self.api_key)
+            # Give up on a slow model after 15s so the fallback models get a turn
+            self.client = genai.Client(
+                api_key=self.api_key,
+                http_options=types.HttpOptions(timeout=15000)
+            )
             self.is_configured = True
         else:
             self.client = None
