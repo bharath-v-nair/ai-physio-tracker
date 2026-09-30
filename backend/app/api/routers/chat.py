@@ -10,6 +10,7 @@ from app.models.assessment import Assessment
 from app.models.rehab_plan import RehabPlan
 from app.models.exercise_session import ExerciseSession
 from app.models.exercise import Exercise
+from app.models.focus_session import FocusSession
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -93,8 +94,19 @@ def send_message(session_id: int, message_in: ChatMessageCreate, db: Session = D
     recent_sessions = db.query(ExerciseSession, Exercise).join(Exercise).filter(ExerciseSession.user_id == current_user.id).order_by(ExerciseSession.completed_at.desc()).limit(3).all()
     
     context_str = f"User Name: {current_user.full_name}\n"
+    if current_user.rehabilitation_goal:
+        context_str += f"User's goal: {current_user.rehabilitation_goal}\n"
     if latest_assessment:
         context_str += f"Latest Posture Assessment: {latest_assessment.posture_score}/100. Detected Issue: {latest_assessment.detected_issue}\n"
+        if latest_assessment.head_offset_pct is not None:
+            context_str += (f"Measurements: head {latest_assessment.head_offset_pct:.0f}% of shoulder width off centre (flagged above 12%), "
+                            f"shoulder tilt {latest_assessment.shoulder_tilt_deg:.1f} degrees (flagged above 5)")
+            if latest_assessment.neck_angle_deg is not None:
+                context_str += f", side-view neck angle {latest_assessment.neck_angle_deg:.1f} degrees (higher = head further back)"
+            context_str += "\n"
+    latest_focus = db.query(FocusSession).filter(FocusSession.user_id == current_user.id).order_by(FocusSession.started_at.desc()).first()
+    if latest_focus:
+        context_str += f"Latest focus-mode work session: {latest_focus.good_pct}% of {latest_focus.duration_seconds // 60} minutes in good posture.\n"
         
     if active_plan and active_plan.exercises:
         exercises = [pe.exercise.name for pe in active_plan.exercises]

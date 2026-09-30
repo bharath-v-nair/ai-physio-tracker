@@ -20,7 +20,7 @@ def seed_exercises():
             "sets": 3,
             "repetitions": "10",
             "duration": "5 minutes",
-            "description": "A simple exercise to strengthen the deep neck muscles and correct forward head posture.",
+            "description": "Trains the deep neck muscles that help hold the head back over the shoulders, the usual exercise for forward head posture.",
             "instructions": json.dumps([
                 "Turn your chair so one shoulder points at the screen: the camera needs to see you from the side.",
                 "Sit tall with your shoulders relaxed and look straight ahead.",
