@@ -60,7 +60,7 @@ export const RehabPlan = () => {
       <div className="p-8 text-center space-y-4">
         <h2 className="text-2xl font-bold text-gray-900">No Active Plan</h2>
         <p className="text-gray-500">You need to complete a posture assessment first.</p>
-        <Button onClick={() => navigate('/dashboard/assessment')}>Take Assessment</Button>
+        <Button onClick={() => navigate('/assessment')}>Take Assessment</Button>
       </div>
     );
   }

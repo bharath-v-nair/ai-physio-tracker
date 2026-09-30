@@ -182,7 +182,7 @@ export const Assessment = () => {
       
       if (response.ok) {
         const assessmentData = await response.json();
-        navigate(`/dashboard/report?assessment_id=${assessmentData.id}`);
+        navigate(`/assessment/report?assessment_id=${assessmentData.id}`);
       }
     } catch (err) {
       console.error("Save failed", err);

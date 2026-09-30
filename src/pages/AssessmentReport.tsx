@@ -76,7 +76,7 @@ export const AssessmentReport = () => {
           headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
-        navigate('/dashboard/rehab');
+        navigate('/rehab');
       }
     } catch (err) {
       console.error(err);
@@ -97,7 +97,7 @@ export const AssessmentReport = () => {
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
       <header className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
         <div>
-          <Link to="/dashboard/assessment" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4 transition-colors">
+          <Link to="/assessment" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Assessment
           </Link>
