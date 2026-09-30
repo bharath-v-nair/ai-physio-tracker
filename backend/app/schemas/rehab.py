@@ -18,7 +18,6 @@ class ExerciseBase(BaseModel):
 class ExerciseInDB(ExerciseBase):
     id: int
     class Config:
-        orm_mode = True
         from_attributes = True
 
 class PlanExerciseBase(BaseModel):
@@ -31,7 +30,6 @@ class PlanExerciseInDB(PlanExerciseBase):
     id: int
     exercise: ExerciseInDB
     class Config:
-        orm_mode = True
         from_attributes = True
 
 class RehabPlanBase(BaseModel):
@@ -44,7 +42,6 @@ class RehabPlanInDB(RehabPlanBase):
     created_at: datetime
     exercises: List[PlanExerciseInDB] = []
     class Config:
-        orm_mode = True
         from_attributes = True
 
 class ExerciseSessionCreate(BaseModel):
@@ -64,7 +61,6 @@ class ExerciseSessionInDB(ExerciseSessionCreate):
     completed_at: datetime
     exercise: ExerciseInDB
     class Config:
-        orm_mode = True
         from_attributes = True
 
 class RecommendationRequest(BaseModel):
