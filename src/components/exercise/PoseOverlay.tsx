@@ -66,9 +66,9 @@ export const PoseOverlay: React.FC<PoseOverlayProps> = ({ isPaused, onLandmarks,
                         // camera might have last frame.
                         if (results.poseLandmarks) {
                             drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
-                                        { color: 'rgba(79, 142, 247, 0.7)', lineWidth: 3 });
+                                        { color: 'rgba(255, 255, 255, 0.85)', lineWidth: 3 });
                             drawLandmarks(canvasCtx, results.poseLandmarks,
-                                        { color: '#60A5FA', lineWidth: 1.5, radius: 4 });
+                                        { color: '#FFFFFF', fillColor: '#00806E', lineWidth: 2, radius: 4 });
                             
                             // Send to parent
                             if (!isPausedRef.current) {

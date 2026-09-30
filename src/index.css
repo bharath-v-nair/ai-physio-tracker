@@ -1,14 +1,181 @@
 @import "tailwindcss";
 
+/*
+  PhysioAI visual system ("assessment sheet"), shared with the presentation deck:
+  paper #F4F7F6, ink #10181B, teal #00806E for normal and good, orange #D9531E only to mark a problem.
+  Tailwind's blue/green/gray scales are remapped to these families so every page follows the same palette.
+*/
 @theme {
-  --color-primary: #4F8EF7;
-  --color-primary-hover: #3B72C6;
-  --color-success: #34C759;
-  --color-text-main: #475569;
-  --color-text-light: #94A3B8;
-  --color-bg-main: #F8FAFC;
+  --color-paper: #F4F7F6;
+  --color-sheet: #FFFFFF;
+  --color-ink: #10181B;
+  --color-muted: #46555A;
+  --color-rule: #CFDAD8;
+  --color-faint: #E6EDEC;
+  --color-primary: #00806E;
+  --color-primary-hover: #006B5C;
+  --color-flag: #D9531E;
+  --color-flag-text: #B8440F;
+  --color-flag-wash: #FBE6DC;
+  --color-success: #00806E;
+  --color-text-main: #10181B;
+  --color-text-light: #5A6B69;
+  --color-bg-main: #F4F7F6;
   --color-card-bg: #FFFFFF;
-  --font-sans: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --font-sans: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --font-serif: 'Newsreader', Georgia, serif;
+
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-2xl: 10px;
+  --radius-3xl: 14px;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --color-blue-50: #E9F5F2;
+  --color-blue-100: #DCEEEA;
+  --color-blue-200: #B5DDD4;
+  --color-blue-300: #82C6B8;
+  --color-blue-400: #3FA592;
+  --color-blue-500: #00806E;
+  --color-blue-600: #006B5C;
+  --color-blue-700: #00564B;
+  --color-blue-800: #064239;
+  --color-blue-900: #0A302A;
+  --color-blue-950: #061F1B;
+  --color-sky-50: #E9F5F2;
+  --color-sky-100: #DCEEEA;
+  --color-sky-200: #B5DDD4;
+  --color-sky-300: #82C6B8;
+  --color-sky-400: #3FA592;
+  --color-sky-500: #00806E;
+  --color-sky-600: #006B5C;
+  --color-sky-700: #00564B;
+  --color-sky-800: #064239;
+  --color-sky-900: #0A302A;
+  --color-sky-950: #061F1B;
+  --color-indigo-50: #E9F5F2;
+  --color-indigo-100: #DCEEEA;
+  --color-indigo-200: #B5DDD4;
+  --color-indigo-300: #82C6B8;
+  --color-indigo-400: #3FA592;
+  --color-indigo-500: #00806E;
+  --color-indigo-600: #006B5C;
+  --color-indigo-700: #00564B;
+  --color-indigo-800: #064239;
+  --color-indigo-900: #0A302A;
+  --color-indigo-950: #061F1B;
+  --color-purple-50: #E9F5F2;
+  --color-purple-100: #DCEEEA;
+  --color-purple-200: #B5DDD4;
+  --color-purple-300: #82C6B8;
+  --color-purple-400: #3FA592;
+  --color-purple-500: #00806E;
+  --color-purple-600: #006B5C;
+  --color-purple-700: #00564B;
+  --color-purple-800: #064239;
+  --color-purple-900: #0A302A;
+  --color-purple-950: #061F1B;
+  --color-green-50: #E9F5F2;
+  --color-green-100: #DCEEEA;
+  --color-green-200: #B5DDD4;
+  --color-green-300: #82C6B8;
+  --color-green-400: #3FA592;
+  --color-green-500: #00806E;
+  --color-green-600: #006B5C;
+  --color-green-700: #00564B;
+  --color-green-800: #064239;
+  --color-green-900: #0A302A;
+  --color-green-950: #061F1B;
+  --color-emerald-50: #E9F5F2;
+  --color-emerald-100: #DCEEEA;
+  --color-emerald-200: #B5DDD4;
+  --color-emerald-300: #82C6B8;
+  --color-emerald-400: #3FA592;
+  --color-emerald-500: #00806E;
+  --color-emerald-600: #006B5C;
+  --color-emerald-700: #00564B;
+  --color-emerald-800: #064239;
+  --color-emerald-900: #0A302A;
+  --color-emerald-950: #061F1B;
+  --color-teal-50: #E9F5F2;
+  --color-teal-100: #DCEEEA;
+  --color-teal-200: #B5DDD4;
+  --color-teal-300: #82C6B8;
+  --color-teal-400: #3FA592;
+  --color-teal-500: #00806E;
+  --color-teal-600: #006B5C;
+  --color-teal-700: #00564B;
+  --color-teal-800: #064239;
+  --color-teal-900: #0A302A;
+  --color-teal-950: #061F1B;
+  --color-cyan-50: #E9F5F2;
+  --color-cyan-100: #DCEEEA;
+  --color-cyan-200: #B5DDD4;
+  --color-cyan-300: #82C6B8;
+  --color-cyan-400: #3FA592;
+  --color-cyan-500: #00806E;
+  --color-cyan-600: #006B5C;
+  --color-cyan-700: #00564B;
+  --color-cyan-800: #064239;
+  --color-cyan-900: #0A302A;
+  --color-cyan-950: #061F1B;
+  --color-gray-50: #F4F7F6;
+  --color-gray-100: #E6EDEC;
+  --color-gray-200: #CFDAD8;
+  --color-gray-300: #AEBDBA;
+  --color-gray-400: #7F918E;
+  --color-gray-500: #5A6B69;
+  --color-gray-600: #46555A;
+  --color-gray-700: #33403F;
+  --color-gray-800: #1F2A2B;
+  --color-gray-900: #10181B;
+  --color-gray-950: #0A1012;
+  --color-slate-50: #F4F7F6;
+  --color-slate-100: #E6EDEC;
+  --color-slate-200: #CFDAD8;
+  --color-slate-300: #AEBDBA;
+  --color-slate-400: #7F918E;
+  --color-slate-500: #5A6B69;
+  --color-slate-600: #46555A;
+  --color-slate-700: #33403F;
+  --color-slate-800: #1F2A2B;
+  --color-slate-900: #10181B;
+  --color-slate-950: #0A1012;
+  --color-zinc-50: #F4F7F6;
+  --color-zinc-100: #E6EDEC;
+  --color-zinc-200: #CFDAD8;
+  --color-zinc-300: #AEBDBA;
+  --color-zinc-400: #7F918E;
+  --color-zinc-500: #5A6B69;
+  --color-zinc-600: #46555A;
+  --color-zinc-700: #33403F;
+  --color-zinc-800: #1F2A2B;
+  --color-zinc-900: #10181B;
+  --color-zinc-950: #0A1012;
+  --color-neutral-50: #F4F7F6;
+  --color-neutral-100: #E6EDEC;
+  --color-neutral-200: #CFDAD8;
+  --color-neutral-300: #AEBDBA;
+  --color-neutral-400: #7F918E;
+  --color-neutral-500: #5A6B69;
+  --color-neutral-600: #46555A;
+  --color-neutral-700: #33403F;
+  --color-neutral-800: #1F2A2B;
+  --color-neutral-900: #10181B;
+  --color-neutral-950: #0A1012;
+  --color-orange-50: #FDF3EE;
+  --color-orange-100: #FBE6DC;
+  --color-orange-200: #F6C9B2;
+  --color-orange-300: #EFA37F;
+  --color-orange-400: #E57A4C;
+  --color-orange-500: #D9531E;
+  --color-orange-600: #B8440F;
+  --color-orange-700: #93360D;
+  --color-orange-800: #6E2A0E;
+  --color-orange-900: #4C1F0D;
+  --color-orange-950: #2E1308;
 }
 
 @layer base {
@@ -19,17 +186,40 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+  .tabular { font-variant-numeric: tabular-nums; }
 }
 
-/* Glassmorphism utilities */
 @layer utilities {
   .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+    @apply bg-white/85 backdrop-blur-md border-b border-rule;
   }
   .glass-card {
-    @apply bg-white/80 backdrop-blur-lg border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[20px];
+    @apply bg-white border border-rule rounded-[4px];
   }
   .soft-shadow {
-    @apply shadow-[0_8px_30px_rgb(0,0,0,0.04)];
+    @apply shadow-none;
+  }
+  /* Measurement-paper background used behind diagrams */
+  .graph-paper {
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 23px, var(--color-faint) 23px 24px),
+      repeating-linear-gradient(90deg, transparent 0 23px, var(--color-faint) 23px 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

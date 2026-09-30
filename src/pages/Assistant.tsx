@@ -166,7 +166,7 @@ export const Assistant = () => {
       <div className="w-full md:w-64 flex flex-col gap-4">
         <button 
           onClick={createNewSession}
-          className="w-full py-3 bg-[#4F8EF7] text-white rounded-xl font-medium hover:bg-[#3B72C6] transition-colors flex items-center justify-center gap-2 shadow-sm"
+          className="w-full py-3 bg-[#00806E] text-white rounded-xl font-medium hover:bg-[#006B5C] transition-colors flex items-center justify-center gap-2 shadow-sm"
         >
           <MessageSquare className="w-4 h-4" />
           New Chat
@@ -200,14 +200,14 @@ export const Assistant = () => {
             <div key={i} className={`flex items-start max-w-3xl ${msg.role === 'user' ? 'justify-end ml-auto' : ''}`}>
               
               {msg.role === 'assistant' && (
-                <div className="w-8 h-8 rounded-full bg-[#4F8EF7] flex items-center justify-center shrink-0 shadow-sm mr-4">
+                <div className="w-8 h-8 rounded-full bg-[#00806E] flex items-center justify-center shrink-0 shadow-sm mr-4">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
               )}
 
               <div className={`p-4 rounded-2xl shadow-sm text-sm md:text-base ${
                 msg.role === 'user' 
-                  ? 'bg-[#4F8EF7] text-white rounded-tr-sm' 
+                  ? 'bg-[#00806E] text-white rounded-tr-sm' 
                   : 'bg-white border border-gray-100 text-gray-700 rounded-tl-sm'
               }`}>
                 {msg.role === 'assistant' ? (
@@ -243,7 +243,7 @@ export const Assistant = () => {
 
           {isLoading && (
             <div className="flex items-start max-w-3xl">
-              <div className="w-8 h-8 rounded-full bg-[#4F8EF7] flex items-center justify-center shrink-0 shadow-sm mr-4">
+              <div className="w-8 h-8 rounded-full bg-[#00806E] flex items-center justify-center shrink-0 shadow-sm mr-4">
                 <Bot className="w-5 h-5 text-white" />
               </div>
               <div className="bg-white p-4 rounded-2xl rounded-tl-sm shadow-sm border border-gray-100 flex items-center gap-2 text-gray-500">
@@ -261,7 +261,7 @@ export const Assistant = () => {
             <button className="p-3 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-50 shrink-0">
               <Paperclip className="w-6 h-6" />
             </button>
-            <div className="flex-1 bg-gray-50 rounded-2xl border border-gray-200 px-4 py-2 md:py-3 focus-within:ring-2 focus-within:ring-[#4F8EF7] focus-within:border-transparent transition-all shadow-inner flex items-center">
+            <div className="flex-1 bg-gray-50 rounded-2xl border border-gray-200 px-4 py-2 md:py-3 focus-within:ring-2 focus-within:ring-[#00806E] focus-within:border-transparent transition-all shadow-inner flex items-center">
               <textarea 
                 rows={1}
                 value={input}
@@ -275,7 +275,7 @@ export const Assistant = () => {
             <button 
               onClick={sendMessage}
               disabled={isLoading || !input.trim()}
-              className="p-3 bg-[#4F8EF7] text-white rounded-full hover:bg-[#3B72C6] transition-colors shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-3 bg-[#00806E] text-white rounded-full hover:bg-[#006B5C] transition-colors shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-5 h-5 ml-0.5" />
             </button>

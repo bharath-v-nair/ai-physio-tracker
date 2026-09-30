@@ -68,7 +68,7 @@ export const ExerciseDetail = () => {
           <p className="mt-2 text-gray-200 max-w-2xl">{exercise.description}</p>
           <div className="mt-6 flex gap-4">
             {LIVE_EXERCISES.includes(exercise.name) ? (
-                <Button onClick={() => navigate(`/dashboard/exercises/${exercise.id}/live`)} size="lg" className="bg-[#4F8EF7] hover:bg-blue-600 text-white border-0 shadow-lg shadow-blue-900/20">
+                <Button onClick={() => navigate(`/dashboard/exercises/${exercise.id}/live`)} size="lg" className="bg-[#00806E] hover:bg-blue-600 text-white border-0 shadow-lg shadow-blue-900/20">
                 <PlayCircle className="w-5 h-5 mr-2" />
                 Start Live Exercise
                 </Button>

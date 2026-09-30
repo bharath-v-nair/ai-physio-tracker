@@ -46,7 +46,7 @@ export const SignalPlot: React.FC<SignalPlotProps> = ({ points, tHi, tLo, twoSid
                     {g.label && <text x={4} y={y(g.v) - 4} fontSize={10} fill={g.color}>{g.label}</text>}
                 </g>
             ))}
-            {path && <path d={path} fill="none" stroke="#4F8EF7" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />}
+            {path && <path d={path} fill="none" stroke="#00806E" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />}
         </svg>
     );
 };

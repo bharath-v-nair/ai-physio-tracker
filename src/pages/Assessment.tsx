@@ -199,7 +199,7 @@ export const Assessment = () => {
     ];
     
     // Draw lines
-    ctx.strokeStyle = '#4F8EF7';
+    ctx.strokeStyle = '#00806E';
     ctx.lineWidth = 3;
     connections.forEach(([start, end]) => {
         const startPoint = landmarks[start];
@@ -218,7 +218,7 @@ export const Assessment = () => {
         if (lm.visibility > 0.5) {
             ctx.beginPath();
             ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 5, 0, 2 * Math.PI);
-            ctx.fillStyle = '#34C759';
+            ctx.fillStyle = '#00806E';
             ctx.fill();
             ctx.strokeStyle = 'white';
             ctx.lineWidth = 1;

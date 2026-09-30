@@ -21,7 +21,7 @@ export const Profile = () => {
           <Card className="text-center overflow-visible mt-8">
             <CardContent className="pt-0 relative px-4 pb-6">
               <div className="w-24 h-24 rounded-2xl bg-white p-1 mx-auto -mt-12 shadow-md">
-                <div className="w-full h-full rounded-xl bg-[#4F8EF7] flex items-center justify-center text-white text-3xl font-bold">
+                <div className="w-full h-full rounded-xl bg-[#00806E] flex items-center justify-center text-white text-3xl font-bold">
                   {profile?.full_name?.charAt(0).toUpperCase() || ''}
                 </div>
               </div>
@@ -32,7 +32,7 @@ export const Profile = () => {
           </Card>
           
           <div className="space-y-1">
-             <button className="w-full flex items-center space-x-3 px-4 py-3 bg-[#4F8EF7]/10 text-[#4F8EF7] rounded-xl font-medium transition-colors">
+             <button className="w-full flex items-center space-x-3 px-4 py-3 bg-[#00806E]/10 text-[#00806E] rounded-xl font-medium transition-colors">
                <User className="w-5 h-5" />
                <span>Personal Info</span>
              </button>
@@ -60,28 +60,28 @@ export const Profile = () => {
                    <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
                    <div className="relative">
                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                     <input type="number" defaultValue={profile?.age ?? ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4F8EF7] focus:outline-none" />
+                     <input type="number" defaultValue={profile?.age ?? ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00806E] focus:outline-none" />
                    </div>
                  </div>
                  <div>
                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                    <div className="relative">
                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                     <input type="email" defaultValue={profile?.email ?? ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4F8EF7] focus:outline-none" />
+                     <input type="email" defaultValue={profile?.email ?? ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00806E] focus:outline-none" />
                    </div>
                  </div>
                  <div>
                    <label className="block text-sm font-medium text-gray-700 mb-2">Height</label>
                    <div className="relative">
                      <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                     <input type="text" defaultValue={profile?.height ? `${profile.height} cm` : ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4F8EF7] focus:outline-none" />
+                     <input type="text" defaultValue={profile?.height ? `${profile.height} cm` : ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00806E] focus:outline-none" />
                    </div>
                  </div>
                  <div>
                    <label className="block text-sm font-medium text-gray-700 mb-2">Weight</label>
                    <div className="relative">
                      <Weight className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                     <input type="text" defaultValue={profile?.weight ? `${profile.weight} kg` : ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4F8EF7] focus:outline-none" />
+                     <input type="text" defaultValue={profile?.weight ? `${profile.weight} kg` : ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00806E] focus:outline-none" />
                    </div>
                  </div>
                </div>

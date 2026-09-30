@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, LayoutDashboard, User, BarChart2, Video, MessageSquare, BookOpen, LogOut, Menu, X, Timer } from 'lucide-react';
+import { LayoutDashboard, User, BarChart2, Video, MessageSquare, BookOpen, LogOut, Menu, X, Timer } from 'lucide-react';
 import { cn } from '../../utils/cn';
+
+// Brand mark: a head over a level shoulder line and spine, the three things the posture check measures
+export const BrandMark = ({ size = 26 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 26 26" aria-hidden="true">
+    <rect width="26" height="26" rx="6" fill="#00806E" />
+    <circle cx="13" cy="7.5" r="2.6" fill="#fff" />
+    <path d="M7 12.5h12M13 12.5v9" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
+  </svg>
+);
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -13,14 +22,15 @@ interface SidebarItemProps {
 const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, to, active }) => (
   <Link
     to={to}
+    aria-current={active ? 'page' : undefined}
     className={cn(
-      "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200",
-      active 
-        ? "bg-[#4F8EF7]/10 text-[#4F8EF7] font-medium" 
-        : "text-[#475569] hover:bg-gray-100"
+      "flex items-center gap-3 px-3 py-2.5 rounded-[6px] transition-colors duration-150",
+      active
+        ? "bg-white text-ink font-semibold shadow-[inset_3px_0_0_var(--color-primary)]"
+        : "text-muted hover:bg-faint hover:text-ink"
     )}
   >
-    <Icon className="w-5 h-5" />
+    <Icon className={cn("w-[18px] h-[18px]", active ? "text-primary" : "")} aria-hidden="true" />
     <span>{label}</span>
   </Link>
 );
@@ -45,17 +55,15 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   ];
 
   const logo = (
-    <div className="flex items-center space-x-2">
-      <div className="w-8 h-8 rounded-lg bg-[#4F8EF7] flex items-center justify-center">
-        <Activity className="w-5 h-5 text-white" />
-      </div>
-      <span className="text-xl font-bold tracking-tight text-gray-900">PhysioAI</span>
-    </div>
+    <Link to="/dashboard" className="flex items-center gap-2.5">
+      <BrandMark />
+      <span className="text-lg font-bold text-ink">PhysioAI</span>
+    </Link>
   );
 
   const sidebarContent = (
     <>
-      <nav className="flex-1 px-4 space-y-1 mt-6">
+      <nav className="flex-1 px-3 space-y-0.5 mt-4" aria-label="Main">
         {navItems.map((item) => (
           <SidebarItem
             key={item.path}
@@ -67,13 +75,13 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         ))}
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
+      <div className="p-3 border-t border-rule">
         <Link
           to="/"
           onClick={() => localStorage.removeItem('token')}
-          className="flex items-center space-x-3 px-4 py-3 rounded-xl text-[#475569] hover:bg-red-50 hover:text-red-600 transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-[6px] text-muted hover:bg-faint hover:text-ink transition-colors"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-[18px] h-[18px]" aria-hidden="true" />
           <span>Sign Out</span>
         </Link>
       </div>
@@ -81,21 +89,21 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   );
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#F8FAFC]">
+    <div className="flex flex-col md:flex-row h-screen bg-paper">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-100 flex-col hidden md:flex">
-        <div className="p-6">{logo}</div>
+      <aside className="w-60 border-r border-rule flex-col hidden md:flex">
+        <div className="px-6 pt-7 pb-4">{logo}</div>
         {sidebarContent}
       </aside>
 
       {/* Phone top bar */}
-      <header className="md:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-gray-100 shrink-0">
+      <header className="md:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-rule shrink-0">
         {logo}
         <button
           type="button"
           onClick={() => setMenuOpen(true)}
           aria-label="Open menu"
-          className="p-2 -mr-2 rounded-lg text-gray-700 hover:bg-gray-100"
+          className="p-2 -mr-2 rounded-[6px] text-ink hover:bg-faint"
         >
           <Menu className="w-6 h-6" />
         </button>
@@ -104,15 +112,15 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       {/* Phone slide-out menu */}
       {menuOpen && (
         <div className="md:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-gray-900/40" onClick={() => setMenuOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85%] bg-white flex flex-col shadow-xl">
-            <div className="p-4 h-16 flex items-center justify-between border-b border-gray-100">
+          <div className="absolute inset-0 bg-ink/40" onClick={() => setMenuOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85%] bg-paper flex flex-col shadow-xl">
+            <div className="p-4 h-16 flex items-center justify-between border-b border-rule bg-white">
               {logo}
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
                 aria-label="Close menu"
-                className="p-2 -mr-2 rounded-lg text-gray-700 hover:bg-gray-100"
+                className="p-2 -mr-2 rounded-[6px] text-ink hover:bg-faint"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -124,7 +132,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="px-4 py-6 md:px-11 md:py-9 max-w-[1240px]">
           {children}
         </div>
       </main>

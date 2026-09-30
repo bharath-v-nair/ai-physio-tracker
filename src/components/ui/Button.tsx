@@ -10,14 +10,14 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
     
-    const baseStyles = "inline-flex items-center justify-center rounded-[14px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
+    const baseStyles = "inline-flex items-center justify-center whitespace-nowrap rounded-[6px] font-semibold transition-[background-color,color,transform] duration-150 ease-out active:scale-[0.98] focus-visible:outline-3 focus-visible:outline-ink focus-visible:outline-offset-2 disabled:opacity-50 disabled:pointer-events-none";
     
     const variants = {
-      primary: "bg-[#4F8EF7] text-white hover:bg-[#3B72C6] shadow-sm focus:ring-[#4F8EF7]",
-      secondary: "bg-white text-[#475569] hover:bg-gray-50 shadow-sm border border-gray-200 focus:ring-gray-200",
-      ghost: "hover:bg-gray-100 text-[#475569] focus:ring-gray-200",
-      outline: "border-2 border-[#4F8EF7] text-[#4F8EF7] hover:bg-[#4F8EF7]/10 focus:ring-[#4F8EF7]",
-      danger: "bg-red-500 text-white hover:bg-red-600 shadow-sm focus:ring-red-500"
+      primary: "bg-primary text-white hover:bg-primary-hover",
+      secondary: "bg-white text-ink hover:bg-paper border border-rule",
+      ghost: "hover:bg-faint text-muted hover:text-ink",
+      outline: "border border-primary text-primary hover:bg-teal-50",
+      danger: "bg-ink text-white hover:bg-gray-800"
     };
 
     const sizes = {

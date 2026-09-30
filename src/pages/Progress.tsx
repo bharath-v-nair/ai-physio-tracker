@@ -55,7 +55,7 @@ const weeklyCounts = (sessions: any[]) => {
 const EmptyChart = ({ message, linkTo, linkText }: { message: string; linkTo: string; linkText: string }) => (
   <div className="w-full h-full bg-gray-50 rounded-xl border border-gray-100 border-dashed flex flex-col items-center justify-center text-center text-gray-500 px-6">
     <p>{message}</p>
-    <Link to={linkTo} className="mt-3 text-sm font-medium text-[#4F8EF7] hover:underline">{linkText}</Link>
+    <Link to={linkTo} className="mt-3 text-sm font-medium text-[#00806E] hover:underline">{linkText}</Link>
   </div>
 );
 
@@ -105,7 +105,7 @@ export const Progress = () => {
 
       {/* Top Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-[#4F8EF7] to-[#3B72C6] text-white border-0 shadow-lg shadow-blue-500/20 md:col-span-2">
+        <Card className="bg-gradient-to-br from-[#00806E] to-[#006B5C] text-white border-0 shadow-lg shadow-blue-500/20 md:col-span-2">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -172,7 +172,7 @@ export const Progress = () => {
                   <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#888' }} axisLine={false} tickLine={false} />
                   <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#888' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                  <Line type="monotone" dataKey="score" name="Posture score" stroke="#4F8EF7" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="score" name="Posture score" stroke="#00806E" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             )}

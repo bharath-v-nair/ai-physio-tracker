@@ -10,7 +10,7 @@ interface RepCounterProps {
 export const RepCounter: React.FC<RepCounterProps> = ({ reps, targetReps }) => {
     return (
         <Card className="bg-white border-0 shadow-lg rounded-2xl overflow-hidden">
-            <div className="p-6 bg-gradient-to-br from-[#4F8EF7] to-blue-600 text-white">
+            <div className="p-6 bg-gradient-to-br from-[#00806E] to-blue-600 text-white">
                 <div className="flex items-center justify-between mb-4">
                     <span className="uppercase text-sm font-semibold tracking-wider text-blue-100">Rep Count</span>
                     <Clock className="w-5 h-5 text-blue-200" />

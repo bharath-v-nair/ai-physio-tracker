@@ -83,7 +83,7 @@ export const Exercises = () => {
         <select 
           value={selectedIssue}
           onChange={handleIssueChange}
-          className="w-full appearance-none bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-10 rounded-xl leading-tight focus:outline-none focus:ring-2 focus:ring-[#4F8EF7] shadow-sm"
+          className="w-full appearance-none bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-10 rounded-xl leading-tight focus:outline-none focus:ring-2 focus:ring-[#00806E] shadow-sm"
         >
           <option value="" disabled>Select your posture issue</option>
           {POSTURE_OPTIONS.map(opt => (
@@ -106,7 +106,7 @@ export const Exercises = () => {
 
       {selectedIssue && loading && (
         <div className="text-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4F8EF7] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00806E] mx-auto mb-4"></div>
           <p className="text-gray-500 text-lg">Finding exercises for your posture...</p>
         </div>
       )}
@@ -131,7 +131,7 @@ export const Exercises = () => {
       {selectedIssue && !loading && !error && exercises.length > 0 && (
         <div className="space-y-6">
           <h2 className="text-xl font-semibold text-gray-800">
-            Recommended for: <span className="text-[#4F8EF7]">{getLabelForIssue(selectedIssue)}</span>
+            Recommended for: <span className="text-[#00806E]">{getLabelForIssue(selectedIssue)}</span>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {exercises.map((exercise) => (

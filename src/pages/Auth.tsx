@@ -68,12 +68,12 @@ export const Auth = ({ mode = 'login' }: { mode?: 'login' | 'register' }) => {
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Decorative blobs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#4F8EF7]/10 rounded-full blur-3xl opacity-50" />
-      <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-[600px] h-[600px] bg-[#34C759]/10 rounded-full blur-3xl opacity-50" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00806E]/10 rounded-full blur-3xl opacity-50" />
+      <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-[600px] h-[600px] bg-[#00806E]/10 rounded-full blur-3xl opacity-50" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-8">
         <Link to="/" className="inline-flex items-center space-x-2">
-          <div className="w-10 h-10 rounded-xl bg-[#4F8EF7] flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-[#00806E] flex items-center justify-center shadow-sm">
             <Activity className="w-6 h-6 text-white" />
           </div>
           <span className="text-2xl font-bold tracking-tight text-gray-900">PhysioAI</span>
@@ -104,7 +104,7 @@ export const Auth = ({ mode = 'login' }: { mode?: 'login' | 'register' }) => {
                       name="name"
                       type="text"
                       required
-                      className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#4F8EF7] focus:border-[#4F8EF7] sm:text-sm transition-colors bg-white/50 backdrop-blur-sm"
+                      className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#00806E] focus:border-[#00806E] sm:text-sm transition-colors bg-white/50 backdrop-blur-sm"
                       placeholder="John Doe"
                     />
                   </div>
@@ -120,7 +120,7 @@ export const Auth = ({ mode = 'login' }: { mode?: 'login' | 'register' }) => {
                     type="email"
                     autoComplete="email"
                     required
-                    className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#4F8EF7] focus:border-[#4F8EF7] sm:text-sm transition-colors bg-white/50 backdrop-blur-sm"
+                    className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#00806E] focus:border-[#00806E] sm:text-sm transition-colors bg-white/50 backdrop-blur-sm"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -135,7 +135,7 @@ export const Auth = ({ mode = 'login' }: { mode?: 'login' | 'register' }) => {
                     type="password"
                     autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                     required
-                    className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#4F8EF7] focus:border-[#4F8EF7] sm:text-sm transition-colors bg-white/50 backdrop-blur-sm"
+                    className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#00806E] focus:border-[#00806E] sm:text-sm transition-colors bg-white/50 backdrop-blur-sm"
                     placeholder="••••••••"
                   />
                 </div>
@@ -144,11 +144,11 @@ export const Auth = ({ mode = 'login' }: { mode?: 'login' | 'register' }) => {
               {mode === 'login' && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-[#4F8EF7] focus:ring-[#4F8EF7] border-gray-300 rounded" />
+                    <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-[#00806E] focus:ring-[#00806E] border-gray-300 rounded" />
                     <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">Remember me</label>
                   </div>
                   <div className="text-sm">
-                    <a href="#" className="font-medium text-[#4F8EF7] hover:text-[#3B72C6]">Forgot your password?</a>
+                    <a href="#" className="font-medium text-[#00806E] hover:text-[#006B5C]">Forgot your password?</a>
                   </div>
                 </div>
               )}
@@ -161,7 +161,7 @@ export const Auth = ({ mode = 'login' }: { mode?: 'login' | 'register' }) => {
           <CardFooter className="justify-center pt-2">
             <p className="text-sm text-gray-600">
               {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-              <Link to={mode === 'login' ? '/register' : '/login'} className="font-medium text-[#4F8EF7] hover:text-[#3B72C6]">
+              <Link to={mode === 'login' ? '/register' : '/login'} className="font-medium text-[#00806E] hover:text-[#006B5C]">
                 {mode === 'login' ? 'Sign up' : 'Log in'}
               </Link>
             </p>

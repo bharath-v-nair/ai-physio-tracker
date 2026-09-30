@@ -316,7 +316,7 @@ export const LiveExercise = () => {
                         {!saveError && (
                             <Button 
                                 onClick={handleSaveSession} 
-                                className="w-full h-14 text-lg bg-[#4F8EF7] hover:bg-blue-600 rounded-xl text-white"
+                                className="w-full h-14 text-lg bg-[#00806E] hover:bg-blue-600 rounded-xl text-white"
                                 disabled={isSaving}
                             >
                                 {isSaving ? "Saving..." : "Save Session"}
@@ -383,7 +383,7 @@ export const LiveExercise = () => {
                             <CardContent className="p-5">
                                 <p className="text-sm font-semibold text-gray-900 mb-2">Measuring your start position</p>
                                 <div className="w-full bg-gray-100 rounded-full h-2">
-                                    <div className="h-2 rounded-full bg-[#4F8EF7] transition-all duration-200" style={{ width: `${live.calibrationProgress * 100}%` }} />
+                                    <div className="h-2 rounded-full bg-[#00806E] transition-all duration-200" style={{ width: `${live.calibrationProgress * 100}%` }} />
                                 </div>
                             </CardContent>
                         </Card>
