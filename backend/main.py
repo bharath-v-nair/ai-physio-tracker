@@ -26,8 +26,9 @@ app.include_router(progress.router, prefix=f"{settings.API_V1_STR}/progress", ta
 app.include_router(rehab.router, prefix=f"{settings.API_V1_STR}/rehab", tags=["rehab"])
 app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["chat"])
 
-from app.api.routers import dashboard
+from app.api.routers import dashboard, focus
 app.include_router(dashboard.router, prefix=f"{settings.API_V1_STR}/dashboard", tags=["dashboard"])
+app.include_router(focus.router, prefix=f"{settings.API_V1_STR}/focus", tags=["focus"])
 
 @app.get("/")
 def root():

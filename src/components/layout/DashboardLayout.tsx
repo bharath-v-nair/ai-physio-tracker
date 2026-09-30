@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, LayoutDashboard, User, BarChart2, Video, MessageSquare, BookOpen, LogOut, Menu, X } from 'lucide-react';
+import { Activity, LayoutDashboard, User, BarChart2, Video, MessageSquare, BookOpen, LogOut, Menu, X, Timer } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 interface SidebarItemProps {
@@ -38,6 +38,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'Live Assessment', icon: Video, path: '/assessment' },
     { label: 'Exercise Library', icon: BookOpen, path: '/exercises' },
+    { label: 'Focus Mode', icon: Timer, path: '/focus' },
     { label: 'Progress Tracker', icon: BarChart2, path: '/progress' },
     { label: 'AI Assistant', icon: MessageSquare, path: '/assistant' },
     { label: 'Profile', icon: User, path: '/profile' },

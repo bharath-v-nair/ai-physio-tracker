@@ -6,3 +6,4 @@ from app.models.progress import Progress
 from app.models.rehab_plan import RehabPlan, PlanExercise
 from app.models.exercise_session import ExerciseSession
 from app.models.chat import ChatSession, ChatMessage
+from app.models.focus_session import FocusSession

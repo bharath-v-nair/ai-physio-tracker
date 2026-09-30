@@ -12,6 +12,7 @@ import { Profile } from './pages/Profile';
 import { RehabPlan } from './pages/RehabPlan';
 import { ExerciseDetail } from './pages/ExerciseDetail';
 import { LiveExercise } from './pages/LiveExercise';
+import { Focus } from './pages/Focus';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
 const App = () => {
@@ -98,6 +99,14 @@ const App = () => {
           element={
             <DashboardLayout>
               <LiveExercise />
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/focus"
+          element={
+            <DashboardLayout>
+              <Focus />
             </DashboardLayout>
           }
         />
