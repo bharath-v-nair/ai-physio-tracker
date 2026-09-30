@@ -50,7 +50,8 @@ These are the problems that stopped the project from working on a fresh computer
 9. **Page refresh gave "404" online.** Added `vercel.json` so every URL loads the React app.
 10. **Assessment lag on slow servers.** The page sent 10 frames/second without waiting. On a slow free server, frames piled up and the skeleton fell behind. It now sends the next frame only after the previous result arrives.
 11. **Linux graphics library.** MediaPipe installs a desktop version of OpenCV that needs graphics libraries servers don't have. `backend/build.sh` swaps it for the "headless" version.
-12. **Database connection drops.** Neon closes idle connections, so `pool_pre_ping=True` makes the backend reconnect automatically.
+12. **Blank screens after some buttons.** "Stop & Save" on the assessment, "Generate Rehab Plan" and "Take Assessment" pointed to addresses that don't exist (e.g. `/dashboard/report` instead of `/assessment/report`). They now point to the right pages.
+13. **Database connection drops.** Neon closes idle connections, so `pool_pre_ping=True` makes the backend reconnect automatically.
 
 ---
 
