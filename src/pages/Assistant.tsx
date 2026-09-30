@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
-import { Send, Bot, User, Paperclip, MessageSquare, Loader2 } from 'lucide-react';
+import { Send, Bot, User, MessageSquare, Loader2 } from 'lucide-react';
 
 // Gemini replies use Markdown: show **bold** as bold and "* item" lines as bullets
 const formatAssistantText = (text: string) =>
@@ -191,8 +191,8 @@ export const Assistant = () => {
           
           {messages.length === 0 && !isLoading && (
             <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 space-y-4">
-               <Bot className="w-12 h-12 text-gray-300" />
-               <p>Send a message to start a new conversation with your AI Physio Assistant.</p>
+               <MessageSquare className="w-10 h-10 text-gray-300" aria-hidden="true" />
+               <p>Ask about your posture checks, exercises or progress. The assistant explains; it doesn't diagnose, and it isn't a physiotherapist.</p>
             </div>
           )}
 
@@ -258,16 +258,13 @@ export const Assistant = () => {
         {/* Input Area */}
         <div className="p-4 bg-white border-t border-gray-100">
           <div className="max-w-4xl mx-auto flex items-end space-x-2">
-            <button className="p-3 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-50 shrink-0">
-              <Paperclip className="w-6 h-6" />
-            </button>
             <div className="flex-1 bg-gray-50 rounded-2xl border border-gray-200 px-4 py-2 md:py-3 focus-within:ring-2 focus-within:ring-[#00806E] focus-within:border-transparent transition-all shadow-inner flex items-center">
               <textarea 
                 rows={1}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask your AI physio about posture, exercises, or recovery..."
+                placeholder="Ask about your posture, exercises or progress" aria-label="Message"
                 className="w-full bg-transparent resize-none focus:outline-none text-gray-700 placeholder-gray-400 py-1"
                 style={{ minHeight: '28px', maxHeight: '120px' }}
               />
@@ -275,16 +272,17 @@ export const Assistant = () => {
             <button 
               onClick={sendMessage}
               disabled={isLoading || !input.trim()}
+              aria-label="Send"
               className="p-3 bg-[#00806E] text-white rounded-full hover:bg-[#006B5C] transition-colors shadow-sm shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send className="w-5 h-5 ml-0.5" />
+              <Send className="w-5 h-5 ml-0.5" aria-hidden="true" />
             </button>
           </div>
           
           <div className="max-w-4xl mx-auto mt-4 flex flex-wrap gap-2 justify-center">
-             <span onClick={() => setInput("Suggest desk exercises")} className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-gray-600 cursor-pointer hover:bg-gray-100">Suggest desk exercises</span>
-             <span onClick={() => setInput("What does my latest assessment mean?")} className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-gray-600 cursor-pointer hover:bg-gray-100">Analyze my last session</span>
-             <span onClick={() => setInput("Why does my neck hurt?")} className="text-xs px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-gray-600 cursor-pointer hover:bg-gray-100">Why does my neck hurt?</span>
+             <button type="button" onClick={() => setInput("Suggest desk exercises")} className="text-[13px] px-3 py-1.5 bg-white border border-rule rounded-[6px] text-ink hover:border-ink">Suggest desk exercises</button>
+             <button type="button" onClick={() => setInput("What does my latest posture check mean?")} className="text-[13px] px-3 py-1.5 bg-white border border-rule rounded-[6px] text-ink hover:border-ink">Explain my last check</button>
+             <button type="button" onClick={() => setInput("How can I sit better while studying?")} className="text-[13px] px-3 py-1.5 bg-white border border-rule rounded-[6px] text-ink hover:border-ink">How can I sit better while studying?</button>
           </div>
         </div>
       </Card>

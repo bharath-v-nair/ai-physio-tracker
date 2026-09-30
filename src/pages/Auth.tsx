@@ -1,173 +1,116 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { Activity } from 'lucide-react';
+import { BrandMark } from '../components/layout/DashboardLayout';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+// FastAPI returns either a message or a list of field errors
+const readError = (detail: unknown, fallback: string) => {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail) && detail[0]?.msg) return String(detail[0].msg).replace(/^Value error, /, '');
+  return fallback;
+};
+
+const inputClass = 'block w-full px-3.5 py-2.5 mt-1.5 bg-white border border-rule rounded-[6px] text-ink placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-teal-100';
 
 export const Auth = ({ mode = 'login' }: { mode?: 'login' | 'register' }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [params] = useSearchParams();
   const navigate = useNavigate();
+  const expired = params.get('expired') === '1' && mode === 'login';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get('email') || '').trim();
+    const password = String(form.get('password') || '');
     try {
-      const emailInput = document.getElementById('email') as HTMLInputElement;
-      const passwordInput = document.getElementById('password') as HTMLInputElement;
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-
       // Sign up: create the account first, then log in with the same details below
       if (mode === 'register') {
-        const nameInput = document.getElementById('name') as HTMLInputElement;
-        const registerResponse = await fetch(`${apiUrl}/api/v1/auth/register`, {
+        const res = await fetch(`${API_URL}/api/v1/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            full_name: nameInput.value,
-            email: emailInput.value,
-            password: passwordInput.value,
-          }),
+          body: JSON.stringify({ full_name: String(form.get('name') || ''), email, password }),
         });
-        if (!registerResponse.ok) {
-          const error = await registerResponse.json().catch(() => null);
-          const detail = error?.detail;
-          alert(
-            typeof detail === 'string'
-              ? detail
-              : 'Sign up failed. Please use a valid email and a password of at least 8 characters.'
-          );
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          setError(readError(body?.detail, 'Sign-up failed. Use a valid email and a password of at least 8 characters.'));
           return;
         }
       }
 
-      const formData = new URLSearchParams();
-      formData.append('username', emailInput.value);
-      formData.append('password', passwordInput.value);
-      
-      const response = await fetch(`${apiUrl}/api/v1/auth/login`, {
+      const res = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString(),
+        body: new URLSearchParams({ username: email, password }).toString(),
       });
-      
-      if (response.ok) {
-        const data = await response.json();
+      if (res.ok) {
+        const data = await res.json();
         localStorage.setItem('token', data.access_token);
         navigate('/dashboard');
       } else {
-        alert('Login failed. Please check your email and password.');
+        setError('That email and password don\'t match an account.');
       }
-    } catch (err) {
-      console.error(err);
-      alert('Error connecting to backend.');
+    } catch {
+      setError("Can't reach the server. It may be starting up: wait 30 seconds and try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Decorative blobs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00806E]/10 rounded-full blur-3xl opacity-50" />
-      <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-[600px] h-[600px] bg-[#00806E]/10 rounded-full blur-3xl opacity-50" />
+    <div className="min-h-screen bg-paper flex flex-col justify-center px-4 py-12">
+      <Link to="/" className="mx-auto mb-8 flex items-center gap-2.5">
+        <BrandMark size={30} />
+        <span className="text-xl font-bold text-ink">PhysioAI</span>
+      </Link>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-8">
-        <Link to="/" className="inline-flex items-center space-x-2">
-          <div className="w-10 h-10 rounded-xl bg-[#00806E] flex items-center justify-center shadow-sm">
-            <Activity className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-2xl font-bold tracking-tight text-gray-900">PhysioAI</span>
-        </Link>
-      </div>
+      <section className="w-full max-w-md mx-auto bg-white border border-rule rounded-[4px] p-6 sm:p-8">
+        <h1 className="text-[30px] leading-tight text-ink">{mode === 'login' ? 'Sign in' : 'Create an account'}</h1>
+        <p className="text-muted mt-1 mb-6">
+          {mode === 'login' ? 'Welcome back.' : 'Takes a minute. Then start with a 20-second posture check.'}
+        </p>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <Card variant="glass" className="border-white/60 shadow-xl">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-2xl text-center">
-              {mode === 'login' ? 'Welcome back' : 'Create an account'}
-            </CardTitle>
-            <CardDescription className="text-center">
-              {mode === 'login' 
-                ? 'Enter your credentials to access your account'
-                : 'Start your rehabilitation journey today'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {mode === 'register' && (
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
-                  <div className="mt-1">
-                    <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      required
-                      className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#00806E] focus:border-[#00806E] sm:text-sm transition-colors bg-white/50 backdrop-blur-sm"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                </div>
-              )}
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
-                <div className="mt-1">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#00806E] focus:border-[#00806E] sm:text-sm transition-colors bg-white/50 backdrop-blur-sm"
-                    placeholder="you@example.com"
-                  />
-                </div>
-              </div>
+        {expired && !error && (
+          <p role="status" className="mb-5 px-3.5 py-3 rounded-[4px] bg-paper border border-rule text-sm text-ink">Your session expired. Please sign in again.</p>
+        )}
+        {error && (
+          <p role="alert" className="mb-5 px-3.5 py-3 rounded-[4px] bg-flag-wash text-sm text-ink">{error}</p>
+        )}
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                <div className="mt-1">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                    required
-                    className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#00806E] focus:border-[#00806E] sm:text-sm transition-colors bg-white/50 backdrop-blur-sm"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === 'register' && (
+            <label className="block text-sm font-semibold text-ink">
+              Your name
+              <input name="name" type="text" required maxLength={100} autoComplete="name" className={inputClass} />
+            </label>
+          )}
+          <label className="block text-sm font-semibold text-ink">
+            Email
+            <input name="email" type="email" required autoComplete="email" placeholder="you@example.com" className={inputClass} />
+          </label>
+          <label className="block text-sm font-semibold text-ink">
+            Password
+            <input name="password" type="password" required minLength={mode === 'register' ? 8 : undefined} maxLength={72}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'} className={inputClass} />
+            {mode === 'register' && <span className="block mt-1 font-normal text-muted">At least 8 characters.</span>}
+          </label>
+          <Button type="submit" size="lg" className="w-full" isLoading={isLoading}>
+            {mode === 'login' ? 'Sign in' : 'Create account'}
+          </Button>
+        </form>
 
-              {mode === 'login' && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-[#00806E] focus:ring-[#00806E] border-gray-300 rounded" />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">Remember me</label>
-                  </div>
-                  <div className="text-sm">
-                    <a href="#" className="font-medium text-[#00806E] hover:text-[#006B5C]">Forgot your password?</a>
-                  </div>
-                </div>
-              )}
-
-              <Button type="submit" className="w-full rounded-xl h-12 text-base" isLoading={isLoading}>
-                {mode === 'login' ? 'Sign in' : 'Sign up'}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="justify-center pt-2">
-            <p className="text-sm text-gray-600">
-              {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-              <Link to={mode === 'login' ? '/register' : '/login'} className="font-medium text-[#00806E] hover:text-[#006B5C]">
-                {mode === 'login' ? 'Sign up' : 'Log in'}
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
-      </div>
+        <p className="text-sm text-muted mt-6 text-center">
+          {mode === 'login' ? "New here? " : 'Already have an account? '}
+          <Link to={mode === 'login' ? '/register' : '/login'} className="font-semibold text-primary hover:underline">
+            {mode === 'login' ? 'Create an account' : 'Sign in'}
+          </Link>
+        </p>
+      </section>
     </div>
   );
 };

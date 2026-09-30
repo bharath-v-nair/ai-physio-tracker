@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Play, Square, Eye, EyeOff, BellRing } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const Pose = (window as any).Pose;
@@ -41,8 +42,8 @@ const formatTime = (secs: number) => {
 const minuteColor = (m: Minute) => {
   if (!m.total) return 'bg-gray-100';
   const pct = m.good / m.total;
-  if (pct >= 0.8) return 'bg-green-500';
-  if (pct >= 0.5) return 'bg-yellow-400';
+  if (pct >= 0.8) return 'bg-primary';
+  if (pct >= 0.5) return 'bg-orange-200';
   return 'bg-orange-500';
 };
 
@@ -85,6 +86,7 @@ export const Focus = () => {
   const startRef = useRef<Date | null>(null);
   const statsRef = useRef({ samples: 0, good: 0, nudges: 0, reasons: {} as Record<string, number>, poorSince: 0 });
   const minutesRef = useRef<Minute[]>([]);
+  const startingRef = useRef(false);
   const nudgeAfterRef = useRef(nudgeAfter);
   nudgeAfterRef.current = nudgeAfter;
 
@@ -141,10 +143,13 @@ export const Focus = () => {
   };
 
   const start = async () => {
+    if (startingRef.current || running) return;
+    startingRef.current = true;
     setError('');
     setSummary(null);
     if (!Pose) {
       setError('The pose model failed to load. Check your connection and reload the page.');
+      startingRef.current = false;
       return;
     }
     try {
@@ -155,6 +160,7 @@ export const Focus = () => {
       }
     } catch {
       setError('Camera access is needed for focus mode. Please allow it and try again.');
+      startingRef.current = false;
       return;
     }
     if ('Notification' in window && Notification.permission === 'default') {
@@ -188,6 +194,7 @@ export const Focus = () => {
     setStatus('calibrating');
     setMessage('Sit the way you want to sit while you work, and hold it.');
     setRunning(true);
+    startingRef.current = false;
 
     timerRef.current = window.setInterval(async () => {
       if (videoRef.current && poseRef.current && videoRef.current.readyState >= 2) {
@@ -219,7 +226,10 @@ export const Focus = () => {
     setStatus('idle');
     setNudge(null);
     const stats = statsRef.current;
-    if (!startRef.current || !stats.samples) return;
+    if (!startRef.current || !stats.samples) {
+      setError("Nothing was saved: the camera didn't see you long enough to measure your posture.");
+      return;
+    }
     const payload = {
       started_at: startRef.current.toISOString(),
       duration_seconds: Math.round((Date.now() - startRef.current.getTime()) / 1000),
@@ -268,15 +278,15 @@ export const Focus = () => {
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Focus Mode</h1>
+          <h1 className="text-[34px] md:text-[40px] leading-tight text-ink">Focus mode</h1>
           <p className="text-gray-500 mt-1">Keep this open while you study or work. It checks your posture every 2 seconds and nudges you when you slouch.</p>
         </div>
         {running ? (
-          <Button onClick={stop} className="bg-red-500 hover:bg-red-600 text-white rounded-full px-6">
+          <Button onClick={stop} variant="danger">
             <Square className="w-4 h-4 mr-2" /> Stop and see summary
           </Button>
         ) : (
-          <Button onClick={start} className="rounded-full px-6">
+          <Button onClick={start} disabled={running}>
             <Play className="w-4 h-4 mr-2" /> Start focus session
           </Button>
         )}
@@ -307,7 +317,7 @@ export const Focus = () => {
                   <span key={i} title={`Minute ${i + 1}: ${m.total ? Math.round((m.good / m.total) * 100) : 0}% good`} className={`w-5 h-5 rounded ${minuteColor(m)}`} />
                 )) : <span className="text-sm text-gray-400">Starts filling in once you begin.</span>}
               </div>
-              <p className="text-xs text-gray-500 mt-2">Green: mostly good posture. Yellow: mixed. Orange: mostly poor.</p>
+              <p className="text-xs text-gray-500 mt-2">Teal: mostly good posture. Light orange: mixed. Orange: mostly poor.</p>
             </div>
 
             <div className="grid grid-cols-3 gap-3 text-center">
@@ -368,7 +378,7 @@ export const Focus = () => {
             <ul className="divide-y divide-gray-100">
               {history.slice(0, 10).map(s => (
                 <li key={s.id} className="py-3 flex items-center justify-between text-sm">
-                  <span className="text-gray-700">{new Date(s.started_at).toLocaleString()}</span>
+                  <span className="text-ink">{new Date(s.started_at).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</span>
                   <span className="text-gray-500">{formatTime(s.duration_seconds)}</span>
                   <span className="font-semibold text-gray-900">{s.good_pct}% good</span>
                 </li>
@@ -383,33 +393,24 @@ export const Focus = () => {
 
 // Share of each session spent in good posture, oldest to newest
 const FocusTrend: React.FC<{ sessions: SavedSession[] }> = ({ sessions }) => {
-  const W = 600, H = 130;
-  const x = (i: number) => 40 + (i * (W - 70)) / Math.max(1, sessions.length - 1);
-  const y = (v: number) => 100 - v * 0.85;
-  const d = sessions.map((s, i) => `${i ? 'L' : 'M'}${x(i)},${y(s.good_pct)}`).join(' ');
+  const data = sessions.map(s => ({ date: new Date(s.started_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), good: s.good_pct }));
   const first = sessions[0].good_pct, last = sessions[sessions.length - 1].good_pct;
   return (
     <div className="mb-4">
-      <p className="text-sm text-muted mb-1">
+      <p className="text-sm text-muted mb-2">
         Good posture went from <strong className="text-ink">{first}%</strong> to <strong className="text-ink">{last}%</strong> over your last {sessions.length} sessions.
       </p>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`Good posture per focus session, from ${first}% to ${last}%`}>
-        {[0, 50, 100].map(v => (
-          <g key={v}>
-            <line x1={30} x2={W - 10} y1={y(v)} y2={y(v)} stroke="#E6EDEC" />
-            <text x={0} y={y(v) + 4} fontSize={11} fill="#46555A">{v}%</text>
-          </g>
-        ))}
-        <path d={d} fill="none" stroke="#00806E" strokeWidth={2.5} strokeLinejoin="round" />
-        {sessions.map((s, i) => (
-          <g key={s.id}>
-            <circle cx={x(i)} cy={y(s.good_pct)} r={4} fill="#fff" stroke="#00806E" strokeWidth={2.5} />
-            <text x={x(i)} y={124} textAnchor="middle" fontSize={11} fill="#46555A">
-              {new Date(s.started_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-            </text>
-          </g>
-        ))}
-      </svg>
+      <div className="h-40" role="img" aria-label={`Good posture per focus session, from ${first}% to ${last}%`}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
+            <CartesianGrid vertical={false} stroke="#E6EDEC" />
+            <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#46555A' }} axisLine={false} tickLine={false} />
+            <YAxis domain={[0, 100]} ticks={[0, 50, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 12, fill: '#46555A' }} axisLine={false} tickLine={false} />
+            <Tooltip formatter={(v) => [`${v}%`, 'Good posture']} contentStyle={{ borderRadius: 4, border: '1px solid #CFDAD8', boxShadow: 'none' }} />
+            <Line type="linear" dataKey="good" stroke="#00806E" strokeWidth={2.5} dot={{ r: 4, fill: '#fff', strokeWidth: 2.5 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

@@ -67,29 +67,35 @@ export const ExerciseDemo: React.FC<{ exerciseName: string }> = ({ exerciseName 
 
   if (kind === 'chin-tucks') {
     // Side view, facing right: the head glides straight back
-    const shift = -14 * e;
+    const shift = -26 * e;
     const ear: P = [150 + shift, 92], shoulder: P = [140, 150], hip: P = [135, 260];
     head = { c: [ear[0] + 12, 78], r: 30 };
     lines.push([ear, shoulder], [shoulder, hip], [shoulder, [150, 200]], [[150, 200], [185, 225]]);
-    dots.push(ear, shoulder, hip);
+    dots.push(ear, shoulder, hip, [head.c[0] + 16, head.c[1] - 8]);
     extra = <path d={`M${head.c[0] + 30},${head.c[1] + 4} l10,4 l-10,4`} fill="none" stroke={INK} strokeWidth={3} strokeLinejoin="round" />;
   } else {
     let L: P = [205, 140], R: P = [95, 140];
-    const neck: P = [150, 110];
     if (kind === 'shrugs') {
-      L = [205, 140 - 16 * e];
-      R = [95, 140 - 16 * e];
+      L = [205, 140 - 26 * e];
+      R = [95, 140 - 26 * e];
     }
+    // The neck starts on the shoulder line, so the head never floats
+    const neck: P = [150, (L[1] + R[1]) / 2];
     const hipL: P = [180, 262], hipR: P = [120, 262];
     lines.push([L, R], [L, hipL], [R, hipR], [hipL, hipR]);
     if (kind === 'side-bend') {
       // Alternate sides: odd reps to the left, even reps to the right
       const side = rep % 2 === 0 ? 1 : -1;
-      const angle = 24 * e * side;
+      const angle = 34 * e * side;
       head = { c: rot([150, 70], neck, angle), r: 26 };
       lines.push([neck, rot([150, 96], neck, angle)]);
+      // Ears: the camera measures the tilt of the line between them
+      const earL = rot([176, 72], neck, angle), earR = rot([124, 72], neck, angle);
+      lines.push([earL, earR]);
+      dots.push(earL, earR);
     } else {
       lines.push([neck, [150, 96]]);
+      dots.push([176, 72], [124, 72]);
     }
     if (kind === 'wall-angels') {
       // Arms slide from a W (goalpost) up into a Y

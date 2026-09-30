@@ -99,7 +99,7 @@ export const Progress = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 max-w-6xl mx-auto pb-12">
       <header>
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Progress Tracker</h1>
+        <h1 className="text-[34px] md:text-[40px] leading-tight text-ink">Progress</h1>
         <p className="text-gray-500 mt-1">Monitor your rehabilitation journey and milestones.</p>
       </header>
 
@@ -109,12 +109,12 @@ export const Progress = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 font-medium">Posture Score Change</p>
+                <p className="text-blue-100 font-medium">Posture score change</p>
                 <h3 className="text-3xl font-bold mt-1">
                   {scoreChange === null ? '–' : `${scoreChange > 0 ? '+' : ''}${scoreChange} points`}
                 </h3>
               </div>
-              <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+              <div className="p-4 bg-white/15 rounded-[6px]">
                 <TrendingUp className="w-8 h-8" />
               </div>
             </div>
@@ -131,10 +131,10 @@ export const Progress = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <div className="p-3 bg-green-100 rounded-xl w-fit mb-4">
-                <Activity className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-faint rounded-[6px] w-fit mb-4">
+                <Activity className="w-6 h-6 text-muted" aria-hidden="true" />
               </div>
-              <p className="text-gray-500 font-medium text-sm">Exercise Adherence</p>
+              <p className="text-gray-500 font-medium text-sm">Exercise adherence</p>
               <h3 className="text-3xl font-bold text-gray-900 mt-1">{adherence}%</h3>
               <p className="text-xs text-gray-500 mt-1">{completedSessions} of {history.length} sessions completed</p>
             </div>
@@ -144,10 +144,10 @@ export const Progress = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <div className="p-3 bg-orange-100 rounded-xl w-fit mb-4">
-                <Flame className="w-6 h-6 text-orange-600" />
+              <div className="p-3 bg-faint rounded-[6px] w-fit mb-4">
+                <Flame className="w-6 h-6 text-muted" aria-hidden="true" />
               </div>
-              <p className="text-gray-500 font-medium text-sm">Current Streak</p>
+              <p className="text-gray-500 font-medium text-sm">Current streak</p>
               <h3 className="text-3xl font-bold text-gray-900 mt-1">{streak} {streak === 1 ? 'day' : 'days'}</h3>
               <p className="text-xs text-gray-500 mt-1">Days in a row with a completed session</p>
             </div>
@@ -158,7 +158,7 @@ export const Progress = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="h-[400px] flex flex-col">
           <CardHeader>
-            <CardTitle>Posture Score Over Time</CardTitle>
+            <CardTitle>Posture score over time</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 min-h-0">
             {loading ? (
@@ -181,7 +181,7 @@ export const Progress = () => {
 
         <Card className="h-[400px] flex flex-col">
           <CardHeader>
-            <CardTitle>Sessions per Week</CardTitle>
+            <CardTitle>Sessions per week</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 min-h-0">
             {loading ? (
@@ -210,9 +210,9 @@ export const Progress = () => {
 
       <Card className="flex flex-col">
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>Recent activity</CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 overflow-auto max-h-[320px]">
+        <CardContent className="flex-1">
           {loading ? (
             <div className="text-center text-gray-500 py-8">Loading history...</div>
           ) : history.length === 0 ? (
@@ -227,7 +227,7 @@ export const Progress = () => {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">{session.exercise?.name}</p>
-                      <p className="text-xs text-gray-500">{new Date(session.completed_at).toLocaleString()}</p>
+                      <p className="text-xs text-gray-500">{new Date(session.completed_at).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</p>
                     </div>
                   </div>
                   <Badge variant={session.skipped ? 'danger' : 'success'}>

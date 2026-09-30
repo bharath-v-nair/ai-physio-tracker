@@ -9,7 +9,6 @@ import { Exercises } from './pages/Exercises';
 import { Progress } from './pages/Progress';
 import { Assistant } from './pages/Assistant';
 import { Profile } from './pages/Profile';
-import { RehabPlan } from './pages/RehabPlan';
 import { ExerciseDetail } from './pages/ExerciseDetail';
 import { LiveExercise } from './pages/LiveExercise';
 import { Focus } from './pages/Focus';
@@ -46,14 +45,8 @@ const App = () => {
             </DashboardLayout>
           }
         />
-        <Route
-          path="/rehab"
-          element={
-            <DashboardLayout>
-              <RehabPlan />
-            </DashboardLayout>
-          }
-        />
+        {/* The routine lives on the dashboard now */}
+        <Route path="/rehab" element={<Navigate to="/dashboard" replace />} />
         <Route
           path="/exercises"
           element={

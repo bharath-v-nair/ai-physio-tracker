@@ -63,6 +63,7 @@ export const Assessment = () => {
   const [step, setStep] = useState<Step>('front');
   const stepRef = useRef<Step>('front');
   const [progress, setProgress] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
   const frontRef = useRef<{ start: number; head: number[]; tilt: number[]; lean: string[] }>({ start: 0, head: [], tilt: [], lean: [] });
   const sideRef = useRef<{ start: number; neck: number[] }>({ start: 0, neck: [] });
   const savingRef = useRef(false);
@@ -78,6 +79,8 @@ export const Assessment = () => {
 
   // Connect to WebSocket
   useEffect(() => {
+    // Stops the capture loop when the check ends (the loop can't read the latest isActive)
+    let running = true;
     if (isActive) {
       // Get token from localStorage (assuming it's stored as 'token' or inside 'auth')
       const token = localStorage.getItem('token') || '';
@@ -155,7 +158,7 @@ export const Assessment = () => {
         }
         // Run ~10 fps
         setTimeout(() => {
-          if (isActive) {
+          if (running) {
             requestRef.current = requestAnimationFrame(captureFrame);
           }
         }, 100);
@@ -173,6 +176,7 @@ export const Assessment = () => {
     }
     
     return () => {
+      running = false;
       if (wsRef.current) wsRef.current.close();
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
@@ -229,8 +233,13 @@ export const Assessment = () => {
 
   const handleStopAndSave = async () => {
     if (savingRef.current) return;
-    savingRef.current = true;
     setIsActive(false);
+    // Never save a check that measured nothing
+    if (frontRef.current.head.length < 3) {
+      setNotice("Nothing was saved: the camera couldn't see your head and shoulders. Sit about an arm's length away, facing the camera, and try again.");
+      return;
+    }
+    savingRef.current = true;
     setIsSaving(true);
     
     try {
@@ -278,7 +287,14 @@ export const Assessment = () => {
   const finishRef = useRef(handleStopAndSave);
   finishRef.current = handleStopAndSave;
 
+  const cancelCheck = () => {
+    setIsActive(false);
+    setNotice('Check cancelled. Nothing was saved.');
+  };
+
   const startCheck = () => {
+    setNotice(null);
+    setAnalysis(null);
     setSessionScores([]);
     issueCountsRef.current = {};
     frontRef.current = { start: 0, head: [], tilt: [], lean: [] };
@@ -291,13 +307,13 @@ export const Assessment = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 h-full flex flex-col">
-      <header className="flex justify-between items-end">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
           <h1 className="text-[34px] md:text-[40px] leading-tight text-ink">Posture check</h1>
           <p className="text-muted mt-1">About 20 seconds: facing the camera, then sideways.</p>
         </div>
         
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-2">
           {!isActive ? (
             <Button onClick={startCheck} disabled={isSaving}>
               <Play className="w-4 h-4 mr-2" />
@@ -305,6 +321,7 @@ export const Assessment = () => {
             </Button>
           ) : (
             <>
+              <Button variant="secondary" onClick={cancelCheck}>Cancel</Button>
               <Button variant="danger" onClick={handleStopAndSave}>
                 <Save className="w-4 h-4 mr-2" />
                 {step === 'side' ? 'Skip side view & save' : 'Stop & Save'}
@@ -313,6 +330,8 @@ export const Assessment = () => {
           )}
         </div>
       </header>
+
+      {notice && <p role="status" className="bg-white border border-rule rounded-[4px] px-4 py-3 text-ink">{notice}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
         {/* Main Camera View */}
@@ -368,14 +387,14 @@ export const Assessment = () => {
           <Card>
             <CardContent className="pt-6 space-y-6">
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Live Posture Score</h3>
+                <h3 className="text-[20px] text-ink mb-2">Live score</h3>
                 <div className="flex items-baseline space-x-2">
                   <span className="font-serif text-[56px] leading-none text-ink tabular">
-                    {isActive ? (analysis?.score != null ? Math.round(analysis.score) : '--') : '--'}
+                    {isActive && analysis?.score ? Math.round(analysis.score) : '–'}
                   </span>
                   <span className="text-gray-500">/100</span>
                 </div>
-                {isActive && analysis && analysis.score != null && (
+                {isActive && analysis && !!analysis.score && (
                   <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div 
                       className={`h-full rounded-full transition-all duration-300 ${analysis.score > 80 ? 'bg-green-500' : analysis.score > 60 ? 'bg-orange-500' : 'bg-red-500'}`} 
@@ -386,7 +405,7 @@ export const Assessment = () => {
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-4">Detected Issues</h3>
+                <h3 className="text-[20px] text-ink mb-3">What the check sees</h3>
                 {isActive ? (
                   <div className="space-y-3">
                     {analysis?.issues && analysis.issues.length > 0 ? (
@@ -399,17 +418,20 @@ export const Assessment = () => {
                           </div>
                         </div>
                       ))
+                    ) : analysis?.score ? (
+                      <div className="p-3 bg-teal-50 rounded-[4px]">
+                        <p className="text-sm font-semibold text-ink">Nothing flagged right now</p>
+                        <p className="text-sm text-muted mt-1">Hold this position until the bar fills.</p>
+                      </div>
                     ) : (
-                      <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl border border-green-100">
-                        <div>
-                          <p className="text-sm font-medium text-green-800">Perfect Posture</p>
-                          <p className="text-xs text-green-600 mt-1">Keep it up! Your alignment is great.</p>
-                        </div>
+                      <div className="p-3 bg-paper border border-rule rounded-[4px]">
+                        <p className="text-sm font-semibold text-ink">{step === 'side' ? 'Waiting for your side view' : "Can't see you yet"}</p>
+                        <p className="text-sm text-muted mt-1">{step === 'side' ? 'Turn so one shoulder points at the screen, with your ear in view.' : 'Sit about an arm\'s length away with your head and both shoulders in view.'}</p>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400 italic">Waiting for analysis...</p>
+                  <p className="text-sm text-muted">Readings appear here once the check starts.</p>
                 )}
               </div>
             </CardContent>

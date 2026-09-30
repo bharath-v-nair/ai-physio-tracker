@@ -1,234 +1,140 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Camera } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { Badge } from '../components/ui/Badge';
-import { Download, Save, CheckCircle2, AlertTriangle, ArrowLeft, Loader2, PlayCircle } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { CheckSummary } from '../components/dashboard/CheckSummary';
+import type { Assessment } from '../components/dashboard/CheckSummary';
+import { LIVE_EXERCISES } from './ExerciseDetail';
 
-const LEAN_LABELS: Record<string, string> = {
-  TUP: 'Upright',
-  TLF: 'Leaning forward',
-  TLB: 'Leaning backward',
-  TLL: 'Leaning left',
-  TLR: 'Leaning right',
-};
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+interface Recommendation {
+  id: number;
+  name: string;
+  target_muscle: string | null;
+  sets: number | null;
+  repetitions: string | null;
+}
 
 export const AssessmentReport = () => {
-  const [assessment, setAssessment] = useState<any>(null);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [check, setCheck] = useState<Assessment | null>(null);
+  const [previous, setPrevious] = useState<Assessment | undefined>();
+  const [isLatest, setIsLatest] = useState(true);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [warning, setWarning] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
+  const [working, setWorking] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const fetchReport = async () => {
-      const searchParams = new URLSearchParams(location.search);
-      const assessmentId = searchParams.get('assessment_id');
-      const token = localStorage.getItem('token');
-
-      if (!assessmentId) {
-        // Fallback or handle missing ID (for simplicity, we might just stop loading)
-        setLoading(false);
-        return;
-      }
-
+    const id = Number(new URLSearchParams(location.search).get('assessment_id'));
+    const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+    const load = async () => {
       try {
-        // Since we don't have a GET /assessment/:id endpoint easily accessible,
-        // we can fetch history and find it, or assume backend can provide it.
-        // Actually, let's hit history and pick the right one.
-        const histRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/assessments/history`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch(`${API_URL}/api/v1/assessments/history`, { headers });
+        if (!res.ok) return;
+        // Newest first
+        const history: Assessment[] = await res.json();
+        const index = history.findIndex(a => a.id === id);
+        if (index < 0) return;
+        const target = history[index];
+        setCheck(target);
+        setPrevious(history[index + 1]);
+        setIsLatest(index === 0);
+
+        const issues = (target.detected_issue ?? '').split(',').map(i => i.trim()).filter(i => i && i !== 'None');
+        const recRes = await fetch(`${API_URL}/api/v1/rehab/recommendations`, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ detected_issues: issues, severity: 'low' }),
         });
-        
-        if (histRes.ok) {
-          const history = await histRes.json();
-          const target = history.find((a: any) => a.id === parseInt(assessmentId));
-          setAssessment(target);
-          
-          if (target && target.detected_issue) {
-             const issues = target.detected_issue.split(',').map((i: string) => i.trim());
-             const recRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/rehab/recommendations`, {
-               method: 'POST',
-               headers: { 
-                 'Content-Type': 'application/json',
-                 'Authorization': `Bearer ${token}` 
-               },
-               body: JSON.stringify({ detected_issues: issues, severity: "low" })
-             });
-             if (recRes.ok) {
-               const recData = await recRes.json();
-               setRecommendations(recData.recommendations);
-               setWarning(recData.warning);
-             }
-          }
+        if (recRes.ok) {
+          const data = await recRes.json();
+          // Camera-counted exercises first
+          const recs: Recommendation[] = data.recommendations ?? [];
+          setRecommendations([...recs].sort((a, b) => Number(LIVE_EXERCISES.includes(b.name)) - Number(LIVE_EXERCISES.includes(a.name))));
+          setWarning(data.warning);
         }
-      } catch (err) {
-        console.error(err);
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchReport();
-  }, [location]);
+    load();
+  }, [location.search]);
 
-  const handleGeneratePlan = async () => {
-    if (!assessment) return;
-    setGenerating(true);
-    const token = localStorage.getItem('token');
+  // Save these recommendations as the active plan (the assistant uses it), then go to today's routine
+  const startRoutine = async () => {
+    if (!check) return;
+    setWorking(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/rehab/generate?assessment_id=${assessment.id}`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
+      await fetch(`${API_URL}/api/v1/rehab/generate?assessment_id=${check.id}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      if (response.ok) {
-        navigate('/rehab');
-      }
-    } catch (err) {
-      console.error(err);
     } finally {
-      setGenerating(false);
+      navigate('/dashboard');
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-gray-500">Loading your assessment results...</div>;
+  if (loading) return <div className="py-20 text-muted">Loading the report…</div>;
+
+  if (!check) {
+    return (
+      <div className="max-w-xl bg-white border border-rule rounded-[4px] p-8">
+        <h1 className="text-[28px] text-ink">Report not found</h1>
+        <p className="text-muted mt-2">This posture check doesn't exist or belongs to another account.</p>
+        <Link to="/dashboard" className="inline-block mt-5 font-semibold text-primary hover:underline">Back to the dashboard</Link>
+      </div>
+    );
   }
 
-  if (!assessment) {
-    return <div className="p-8 text-center text-gray-500">Assessment not found.</div>;
-  }
+  const flagged = (check.detected_issue ?? 'None') !== 'None';
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
-      <header className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+    <div className="pb-12">
+      <Link to="/assessment" className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink mb-4">
+        <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Posture check
+      </Link>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
-          <Link to="/assessment" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4 transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Assessment
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Assessment Report</h1>
-          <p className="text-gray-500 mt-1">Detailed breakdown of your latest session.</p>
+          <h1 className="text-[34px] md:text-[40px] leading-tight text-ink">Your posture check</h1>
+          <p className="text-muted mt-1">
+            {new Date(check.created_at).toLocaleString(undefined, { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' })}
+            {isLatest ? ', your latest check' : ''}
+          </p>
         </div>
-        
-        <div className="flex space-x-3">
-          <Button onClick={handleGeneratePlan} disabled={generating} className="rounded-xl bg-blue-600 hover:bg-blue-700">
-            {generating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-            Generate Rehab Plan
-          </Button>
-        </div>
-      </header>
+        <Button onClick={startRoutine} isLoading={working}>Go to today's routine</Button>
+      </div>
 
-      {/* Overview */}
-      <Card className="bg-gradient-to-r from-gray-900 to-slate-800 text-white border-0 shadow-xl">
-        <CardContent className="p-8">
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-             <div className="text-center md:text-left">
-               <p className="text-slate-400 font-medium mb-1">Overall Score</p>
-               <div className="flex items-baseline justify-center md:justify-start space-x-2">
-                 <span className="text-6xl font-bold text-white">{assessment.posture_score}</span>
-                 <span className="text-xl text-slate-400">/100</span>
-               </div>
-               {assessment.posture_score >= 80 ? (
-                 <Badge variant="success" className="mt-4 bg-green-500/20 text-green-300 border border-green-500/30">Good Posture</Badge>
-               ) : assessment.posture_score >= 50 ? (
-                 <Badge variant="warning" className="mt-4 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">Needs Improvement</Badge>
-               ) : (
-                 <Badge variant="danger" className="mt-4 bg-red-500/20 text-red-300 border border-red-500/30">Poor Posture</Badge>
-               )}
-             </div>
-             
-             <div className="md:col-span-2">
-               <p className="text-lg text-slate-300 leading-relaxed">
-                 {assessment.posture_score >= 80 
-                   ? "Your overall posture is good, but consistent practice can help maintain it."
-                   : "We've detected some areas for improvement. A targeted rehab plan will help correct these issues."}
-               </p>
-             </div>
-           </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-6 items-start">
+        <section className="bg-white border border-rule rounded-[4px]">
+          <CheckSummary check={check} previous={previous} />
+        </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Detected Issues */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Key Findings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             {assessment.detected_issue && assessment.detected_issue !== "None" ? (
-               assessment.detected_issue.split(',').map((issue: string, idx: number) => (
-                 <div key={idx} className="p-4 rounded-xl border border-orange-200 bg-orange-50 flex space-x-4">
-                   <AlertTriangle className="w-6 h-6 text-orange-500 shrink-0" />
-                   <div>
-                     <h4 className="font-semibold text-gray-900 capitalize">{issue.replace('_', ' ')}</h4>
-                     <p className="text-sm text-gray-600 mt-1 mb-3">Detected during your live assessment.</p>
-                   </div>
-                 </div>
-               ))
-             ) : (
-               <div className="p-4 rounded-xl border border-green-200 bg-green-50 flex space-x-4">
-                 <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />
-                 <div>
-                   <h4 className="font-semibold text-gray-900">Great alignment</h4>
-                   <p className="text-sm text-gray-600 mt-1">No major postural issues detected.</p>
-                 </div>
-               </div>
-             )}
-
-             {assessment.head_offset_pct != null && (
-               <dl className="divide-y divide-gray-100 border-t border-gray-100 pt-2 text-sm">
-                 {[
-                   ['Head position', `${assessment.head_offset_pct.toFixed(1)}% of shoulder width off centre`, 'flagged above 12%'],
-                   ['Shoulder level', `${assessment.shoulder_tilt_deg?.toFixed(1)}° tilt`, 'flagged above 5°'],
-                   ['Trunk', LEAN_LABELS[assessment.trunk_lean] ?? 'Not measured (hips not in view)', 'trained on expert-labelled posture data'],
-                   ['Neck angle (side view)', assessment.neck_angle_deg != null ? `${assessment.neck_angle_deg.toFixed(1)}°` : 'Side view skipped', 'higher means the head sits further back; compare with your earlier checks'],
-                 ].map(([label, value, note]) => (
-                   <div key={label} className="py-2">
-                     <dt className="text-gray-500">{label}</dt>
-                     <dd className="font-medium text-gray-900">{value} <span className="font-normal text-gray-400">({note})</span></dd>
-                   </div>
-                 ))}
-               </dl>
-             )}
-          </CardContent>
-        </Card>
-
-        {/* Recommended Exercises */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recommended Exercises</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             {warning && (
-               <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm mb-4">
-                 {warning}
-               </div>
-             )}
-             
-             {recommendations.length > 0 ? (
-               recommendations.map((ex: any) => (
-                 <div key={ex.id} className="flex items-center space-x-4 p-3 rounded-lg border border-gray-100 bg-gray-50 hover:bg-white hover:shadow-sm transition-all cursor-pointer" onClick={() => navigate(`/dashboard/exercises/${ex.id}`)}>
-                   <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center shrink-0">
-                     <PlayCircle className="w-6 h-6 text-gray-400" />
-                   </div>
-                   <div className="flex-1 min-w-0">
-                     <h4 className="font-medium text-gray-900 truncate">{ex.name}</h4>
-                     <p className="text-sm text-gray-500 truncate">{ex.target_muscle}</p>
-                   </div>
-                   <div className="text-right shrink-0">
-                     <div className="text-sm font-medium text-gray-900">{ex.sets}x{ex.repetitions || '10'}</div>
-                     <div className="text-xs text-gray-500">{ex.difficulty}</div>
-                   </div>
-                 </div>
-               ))
-             ) : (
-               <p className="text-gray-500 text-sm">No specific recommendations.</p>
-             )}
-          </CardContent>
-        </Card>
+        <section className="bg-white border border-rule rounded-[4px]">
+          <header className="px-5 md:px-6 pt-4 pb-3 border-b border-faint">
+            <h2 className="text-[22px] text-ink">{flagged ? 'Exercises for what was flagged' : 'Exercises to keep it that way'}</h2>
+          </header>
+          {warning && <p className="mx-5 md:mx-6 mt-4 text-sm bg-flag-wash rounded-[4px] px-3.5 py-3 text-ink">{warning}</p>}
+          {recommendations.length ? (
+            <ul className="px-5 md:px-6 py-1.5">
+              {recommendations.map(ex => (
+                <li key={ex.id} className="border-b border-faint last:border-b-0">
+                  <Link to={`/dashboard/exercises/${ex.id}`} className="flex items-center justify-between gap-3 py-3 group">
+                    <span>
+                      <strong className="block font-semibold text-ink group-hover:underline">{ex.name}</strong>
+                      <span className="text-sm text-muted">{ex.target_muscle}</span>
+                    </span>
+                    {LIVE_EXERCISES.includes(ex.name)
+                      ? <span className="flex items-center gap-1.5 text-sm font-semibold text-primary whitespace-nowrap"><Camera className="w-4 h-4" aria-hidden="true" />Counted</span>
+                      : <span className="text-sm text-muted whitespace-nowrap">{ex.sets ?? 3} × {ex.repetitions ?? '10'}</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="px-6 py-5 text-sm text-muted">No specific exercises for this check. The daily routine covers the basics.</p>}
+        </section>
       </div>
     </div>
   );

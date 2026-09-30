@@ -85,6 +85,9 @@ export const PoseOverlay: React.FC<PoseOverlayProps> = ({ isPaused, onLandmarks,
                                     height: videoRef.current.videoHeight 
                                 });
                             }
+                        } else if (!isPausedRef.current && videoRef.current) {
+                            // Nobody in view: tell the server, so it can say so instead of waiting silently
+                            onLandmarks([], { width: videoRef.current.videoWidth, height: videoRef.current.videoHeight });
                         }
                         canvasCtx.restore();
                     }

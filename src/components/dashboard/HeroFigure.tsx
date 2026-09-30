@@ -6,8 +6,8 @@ import { PostureFigure } from './PostureFigure';
 // An example (not a real user) played once: the same three measurements a check takes, improving over time
 const STEPS = [
   { label: 'First check', note: 'Head 24% off centre, shoulders tilted 8°', score: 75, m: { head_offset_pct: 24, shoulder_tilt_deg: 8, trunk_lean: null } },
-  { label: 'After one week', note: 'Head 14% off centre, shoulders 4°', score: 90, m: { head_offset_pct: 14, shoulder_tilt_deg: 4, trunk_lean: null } },
-  { label: 'After two weeks', note: 'Head 7% off centre, shoulders 2°', score: 100, m: { head_offset_pct: 7, shoulder_tilt_deg: 2, trunk_lean: 'TUP' } },
+  { label: 'A week later', note: 'Head 14% off centre, shoulders 6°', score: 85, m: { head_offset_pct: 14, shoulder_tilt_deg: 6, trunk_lean: null } },
+  { label: 'Later check', note: 'Head 9% off centre, shoulders 5.5°', score: 95, m: { head_offset_pct: 9, shoulder_tilt_deg: 5.5, trunk_lean: null } },
 ];
 
 export const HeroFigure: React.FC = () => {
@@ -17,7 +17,7 @@ export const HeroFigure: React.FC = () => {
 
   useEffect(() => {
     if (reduce || step >= STEPS.length - 1) return;
-    const t = window.setTimeout(() => setStep(s => s + 1), 2800);
+    const t = window.setTimeout(() => setStep(s => s + 1), step === 0 ? 1800 : 1400);
     return () => window.clearTimeout(t);
   }, [step, run, reduce]);
 
@@ -30,7 +30,7 @@ export const HeroFigure: React.FC = () => {
       </div>
       <div className="grid grid-cols-[1fr_auto] items-stretch">
         <div className="graph-paper border-r border-faint">
-          <PostureFigure m={s.m} drawKey={`${run}-${step}`} />
+          <PostureFigure m={s.m} />
         </div>
         <div className="w-40 sm:w-48 p-4 sm:p-5 flex flex-col">
           <AnimatePresence mode="wait">

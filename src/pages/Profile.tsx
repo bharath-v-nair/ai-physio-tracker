@@ -1,113 +1,118 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../components/ui/Button';
 import { useUserProfile } from '../utils/useUserProfile';
-import { User, Mail, Ruler, Weight, Target, Settings, Bell } from 'lucide-react';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const inputClass = 'block w-full px-3.5 py-2.5 mt-1.5 bg-white border border-rule rounded-[6px] text-ink focus:outline-none focus:border-primary focus:ring-2 focus:ring-teal-100';
+
+// FastAPI field errors -> one readable line
+const readError = (detail: unknown) => {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail) && detail[0]) {
+    const field = String(detail[0].loc?.[detail[0].loc.length - 1] ?? '').replace('_', ' ');
+    return `${field ? `${field[0].toUpperCase()}${field.slice(1)}: ` : ''}${String(detail[0].msg).replace(/^Value error, /, '')}`;
+  }
+  return 'Could not save your changes.';
+};
 
 export const Profile = () => {
   const profile = useUserProfile();
-  const goals = profile?.rehabilitation_goal ? [profile.rehabilitation_goal] : [];
+  const [form, setForm] = useState({ full_name: '', age: '', height: '', weight: '', rehabilitation_goal: '' });
+  const [status, setStatus] = useState<{ kind: 'saved' | 'error'; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!profile) return;
+    setForm({
+      full_name: profile.full_name ?? '',
+      age: profile.age?.toString() ?? '',
+      height: profile.height?.toString() ?? '',
+      weight: profile.weight?.toString() ?? '',
+      rehabilitation_goal: profile.rehabilitation_goal ?? '',
+    });
+  }, [profile]);
+
+  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setStatus(null);
+    setForm(f => ({ ...f, [key]: e.target.value }));
+  };
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setStatus(null);
+    const num = (v: string) => (v.trim() === '' ? null : Number(v));
+    try {
+      const res = await fetch(`${API_URL}/api/v1/users/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({
+          full_name: form.full_name,
+          age: num(form.age),
+          height: num(form.height),
+          weight: num(form.weight),
+          rehabilitation_goal: form.rehabilitation_goal.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        setStatus({ kind: 'saved', text: 'Changes saved.' });
+      } else {
+        const body = await res.json().catch(() => null);
+        setStatus({ kind: 'error', text: readError(body?.detail) });
+      }
+    } catch {
+      setStatus({ kind: 'error', text: "Can't reach the server. Try again in a moment." });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <header>
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Profile Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your personal information and preferences.</p>
+    <div className="max-w-3xl pb-12">
+      <header className="mb-6">
+        <h1 className="text-[34px] md:text-[40px] leading-tight text-ink">Profile</h1>
+        <p className="text-muted mt-1">{profile?.email}</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Left Column */}
-        <div className="md:col-span-1 space-y-6">
-          <Card className="text-center overflow-visible mt-8">
-            <CardContent className="pt-0 relative px-4 pb-6">
-              <div className="w-24 h-24 rounded-2xl bg-white p-1 mx-auto -mt-12 shadow-md">
-                <div className="w-full h-full rounded-xl bg-[#00806E] flex items-center justify-center text-white text-3xl font-bold">
-                  {profile?.full_name?.charAt(0).toUpperCase() || ''}
-                </div>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mt-4">{profile?.full_name}</h2>
-              <p className="text-gray-500 text-sm mt-1">{profile?.email}</p>
-              <Button variant="outline" className="w-full mt-6">Edit Profile</Button>
-            </CardContent>
-          </Card>
-          
-          <div className="space-y-1">
-             <button className="w-full flex items-center space-x-3 px-4 py-3 bg-[#00806E]/10 text-[#00806E] rounded-xl font-medium transition-colors">
-               <User className="w-5 h-5" />
-               <span>Personal Info</span>
-             </button>
-             <button className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors">
-               <Settings className="w-5 h-5" />
-               <span>Account Settings</span>
-             </button>
-             <button className="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors">
-               <Bell className="w-5 h-5" />
-               <span>Notifications</span>
-             </button>
-          </div>
+      <form onSubmit={save} className="bg-white border border-rule rounded-[4px] p-5 md:p-6 space-y-5">
+        <label className="block text-sm font-semibold text-ink">
+          Name
+          <input value={form.full_name} onChange={set('full_name')} required maxLength={100} className={`${inputClass} break-words`} />
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <label className="block text-sm font-semibold text-ink">
+            Age
+            <input type="number" min={1} max={120} value={form.age} onChange={set('age')} className={inputClass} />
+          </label>
+          <label className="block text-sm font-semibold text-ink">
+            Height (cm)
+            <input type="number" min={50} max={250} step="0.1" value={form.height} onChange={set('height')} className={inputClass} />
+          </label>
+          <label className="block text-sm font-semibold text-ink">
+            Weight (kg)
+            <input type="number" min={20} max={300} step="0.1" value={form.weight} onChange={set('weight')} className={inputClass} />
+          </label>
         </div>
-
-        {/* Right Column */}
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>Update your physical metrics for accurate AI analysis.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-               <div key={profile?.id ?? 'loading'} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
-                   <div className="relative">
-                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                     <input type="number" defaultValue={profile?.age ?? ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00806E] focus:outline-none" />
-                   </div>
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                   <div className="relative">
-                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                     <input type="email" defaultValue={profile?.email ?? ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00806E] focus:outline-none" />
-                   </div>
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Height</label>
-                   <div className="relative">
-                     <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                     <input type="text" defaultValue={profile?.height ? `${profile.height} cm` : ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00806E] focus:outline-none" />
-                   </div>
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Weight</label>
-                   <div className="relative">
-                     <Weight className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                     <input type="text" defaultValue={profile?.weight ? `${profile.weight} kg` : ''} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00806E] focus:outline-none" />
-                   </div>
-                 </div>
-               </div>
-
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">Current Goals</label>
-                 <div className="space-y-3">
-                   {goals.map((goal, idx) => (
-                     <div key={idx} className="flex items-center space-x-3 p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-blue-800">
-                       <Target className="w-5 h-5 text-blue-500 shrink-0" />
-                       <span className="text-sm font-medium">{goal}</span>
-                     </div>
-                   ))}
-                   <Button variant="outline" className="w-full border-dashed text-gray-500 hover:text-gray-700">
-                     + Add New Goal
-                   </Button>
-                 </div>
-               </div>
-
-               <div className="pt-4 border-t border-gray-100 flex justify-end">
-                 <Button>Save Changes</Button>
-               </div>
-            </CardContent>
-          </Card>
+        <label className="block text-sm font-semibold text-ink">
+          Your goal
+          <textarea value={form.rehabilitation_goal} onChange={set('rehabilitation_goal')} maxLength={300} rows={3}
+            placeholder="For example: less neck stiffness after long study days" className={inputClass} />
+          <span className="block mt-1 font-normal text-muted">The assistant can see your goal. Age, height and weight are optional and not used for scoring.</span>
+        </label>
+        <div className="flex items-center gap-4">
+          <Button type="submit" isLoading={saving}>Save changes</Button>
+          {status && (
+            <p role={status.kind === 'error' ? 'alert' : 'status'} className={`text-sm ${status.kind === 'error' ? 'text-flag-text' : 'text-primary font-semibold'}`}>{status.text}</p>
+          )}
         </div>
-      </div>
+      </form>
+
+      <section className="mt-6 bg-white border border-rule rounded-[4px] p-5 md:p-6">
+        <h2 className="text-[22px] text-ink mb-2">Your data</h2>
+        <p className="text-sm text-muted">
+          PhysioAI stores your scores, measurements, exercise sessions and focus sessions. Camera video is analysed as it streams and never saved.
+        </p>
+      </section>
     </div>
   );
 };

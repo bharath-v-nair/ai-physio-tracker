@@ -6,6 +6,7 @@ import { ArrowLeft, Pause, Play, Square, Activity, AlertCircle, CheckCircle2, Vo
 import { PoseOverlay } from '../components/exercise/PoseOverlay';
 import { ExerciseFeedback } from '../components/exercise/ExerciseFeedback';
 import { RepCounter } from '../components/exercise/RepCounter';
+import { LIVE_EXERCISES } from './ExerciseDetail';
 import { SignalPlot } from '../components/exercise/SignalPlot';
 import type { SignalPoint } from '../components/exercise/SignalPlot';
 
@@ -102,7 +103,9 @@ export const LiveExercise = () => {
                 if (response.ok) {
                     const data = await response.json();
                     const found = data.find((ex: any) => ex.id === parseInt(id || '0'));
-                    if (found) {
+                    if (found && !LIVE_EXERCISES.includes(found.name)) {
+                        setError("Live counting isn't available for this exercise yet. You can still follow the steps on its page.");
+                    } else if (found) {
                         setExercise(found);
                         
                         // Open WS for analysis
@@ -254,6 +257,21 @@ export const LiveExercise = () => {
         return <div className="p-8 text-center">Loading...</div>;
     }
 
+    if (sessionFinished && reps === 0) {
+        return (
+            <div className="max-w-xl mx-auto pt-8">
+                <section className="bg-white border border-rule rounded-[4px] p-8">
+                    <h2 className="text-[28px] text-ink">No reps were counted</h2>
+                    <p className="text-muted mt-2">Nothing has been saved. Check the camera can see the body parts this exercise needs, then try again.</p>
+                    <div className="flex flex-wrap gap-3 mt-6">
+                        <Button onClick={() => window.location.reload()}>Try again</Button>
+                        <Button variant="secondary" onClick={() => navigate(-1)}>Back to the exercise</Button>
+                    </div>
+                </section>
+            </div>
+        );
+    }
+
     if (sessionFinished) {
         return (
             <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pt-8">
@@ -329,22 +347,22 @@ export const LiveExercise = () => {
     }
 
     return (
-        <div className="h-[calc(100vh-6rem)] flex flex-col space-y-4 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between">
+        <div className="lg:h-[calc(100vh-6rem)] flex flex-col space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center space-x-4">
                     <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{exercise.name}</h1>
-                        <p className="text-sm text-gray-500 flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse mr-2"></span>
-                            Live Analysis Active
+                        <h1 className="text-[28px] leading-tight text-ink">{exercise.name}</h1>
+                        <p className="text-sm text-muted flex items-center">
+                            <span className="w-2 h-2 rounded-full bg-primary mr-2" aria-hidden="true"></span>
+                            Camera on: only body points are analysed
                         </p>
                     </div>
                 </div>
                 
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap gap-2 justify-end">
                     <Button
                         variant="outline"
                         onClick={() => setVoiceOn(v => !v)}
@@ -405,7 +423,7 @@ export const LiveExercise = () => {
                             </CardContent>
                         </Card>
                     )}
-                    <ExerciseFeedback formScore={formScore} status={status} feedback={feedback} />
+                    <ExerciseFeedback formScore={reps > 0 ? formScore : null} status={status} feedback={feedback} />
                 </div>
             </div>
         </div>

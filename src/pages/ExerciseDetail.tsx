@@ -6,7 +6,7 @@ import { ExerciseDemo, DEMO_KIND } from '../components/exercise/ExerciseDemo';
 import { ArrowLeft, Clock, Target, AlertTriangle, Lightbulb, PlayCircle } from 'lucide-react';
 
 // Exercises with a live camera analyser (backend/app/ai/exercises/exercise_factory.py)
-const LIVE_EXERCISES = ['Neck Side-Bend Stretch', 'Wall Angels', 'Shoulder Shrugs', 'Chin Tucks'];
+export const LIVE_EXERCISES = ['Neck Side-Bend Stretch', 'Wall Angels', 'Shoulder Shrugs', 'Chin Tucks'];
 
 export const ExerciseDetail = () => {
   const { id } = useParams();
@@ -58,7 +58,7 @@ export const ExerciseDetail = () => {
           </div>
           <h1 className="text-[34px] md:text-[40px] leading-tight text-ink">{exercise.name}</h1>
           <p className="mt-2 text-muted max-w-xl">{exercise.description}</p>
-          <div className="mt-auto pt-6 flex flex-wrap gap-3">
+          <div className="mt-auto pt-6 flex flex-col sm:flex-row sm:flex-wrap gap-3">
             {LIVE_EXERCISES.includes(exercise.name) ? (
               <Button onClick={() => navigate(`/dashboard/exercises/${exercise.id}/live`)} size="lg">
                 <PlayCircle className="w-5 h-5 mr-2" aria-hidden="true" />
@@ -86,7 +86,7 @@ export const ExerciseDetail = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
         <div className="md:col-span-2 space-y-8">
           <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Instructions</h2>
+            <h2 className="text-[26px] text-ink mb-4">Steps</h2>
             <div className="space-y-4">
               {Array.isArray(exercise.instructions) && exercise.instructions.map((step: string, index: number) => (
                 <div key={index} className="flex items-start">
@@ -101,7 +101,7 @@ export const ExerciseDetail = () => {
 
           {(exercise.common_mistakes && exercise.common_mistakes.length > 0) && (
             <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Common Mistakes</h2>
+              <h2 className="text-[26px] text-ink mb-4">Common mistakes</h2>
               <Card className="bg-red-50 border-red-100">
                 <CardContent className="p-6">
                   <ul className="space-y-3">
@@ -124,7 +124,7 @@ export const ExerciseDetail = () => {
               <div>
                 <div className="flex items-center text-gray-500 mb-1">
                   <Target className="w-4 h-4 mr-2" />
-                  <h3 className="text-sm font-semibold">Target Muscle</h3>
+                  <h3 className="text-sm font-semibold">Target muscles</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-900">{exercise.target_muscle}</p>
               </div>
@@ -133,7 +133,7 @@ export const ExerciseDetail = () => {
                 <div>
                   <div className="flex items-center text-gray-500 mb-1">
                     <AlertTriangle className="w-4 h-4 mr-2" />
-                    <h3 className="text-sm font-semibold">Safety Note</h3>
+                    <h3 className="text-sm font-semibold">Safety</h3>
                   </div>
                   <p className="text-sm text-gray-700">{exercise.safety_notes}</p>
                 </div>
@@ -143,7 +143,7 @@ export const ExerciseDetail = () => {
                 <div>
                   <div className="flex items-center text-blue-600 mb-2">
                     <Lightbulb className="w-4 h-4 mr-2" />
-                    <h3 className="text-sm font-semibold">Pro Tips</h3>
+                    <h3 className="text-sm font-semibold">Tips</h3>
                   </div>
                   <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                     {exercise.tips.map((tip: string, idx: number) => (

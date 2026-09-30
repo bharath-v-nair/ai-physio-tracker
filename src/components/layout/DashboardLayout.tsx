@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, User, BarChart2, Video, MessageSquare, BookOpen, LogOut, Menu, X, Timer } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -37,7 +37,22 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, to, active
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const token = localStorage.getItem('token');
+
+  // A saved login can expire (after 24 hours): check it once, and send the user to sign in again
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/users/profile`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        if (res.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login?expired=1', { replace: true });
+        }
+      })
+      .catch(() => { /* offline: let the page show its own error */ });
+  }, [token, navigate]);
 
   // Close the phone menu after navigating
   useEffect(() => {
@@ -46,11 +61,11 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { label: 'Posture Check', icon: Video, path: '/assessment' },
-    { label: 'Exercise Library', icon: BookOpen, path: '/exercises' },
-    { label: 'Focus Mode', icon: Timer, path: '/focus' },
-    { label: 'Progress Tracker', icon: BarChart2, path: '/progress' },
-    { label: 'AI Assistant', icon: MessageSquare, path: '/assistant' },
+    { label: 'Posture check', icon: Video, path: '/assessment' },
+    { label: 'Exercise library', icon: BookOpen, path: '/exercises' },
+    { label: 'Focus mode', icon: Timer, path: '/focus' },
+    { label: 'Progress', icon: BarChart2, path: '/progress' },
+    { label: 'Assistant', icon: MessageSquare, path: '/assistant' },
     { label: 'Profile', icon: User, path: '/profile' },
   ];
 
@@ -88,11 +103,13 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           className="flex items-center gap-3 px-3 py-2.5 rounded-[6px] text-muted hover:bg-faint hover:text-ink transition-colors"
         >
           <LogOut className="w-[18px] h-[18px]" aria-hidden="true" />
-          <span>Sign Out</span>
+          <span>Sign out</span>
         </Link>
       </div>
     </>
   );
+
+  if (!token) return <Navigate to="/login" replace />;
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-paper">
