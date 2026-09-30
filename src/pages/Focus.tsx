@@ -363,6 +363,7 @@ export const Focus = () => {
       <Card>
         <CardHeader><CardTitle>Past focus sessions</CardTitle></CardHeader>
         <CardContent>
+          {history.length >= 2 && <FocusTrend sessions={history.slice(0, 10).reverse()} />}
           {history.length ? (
             <ul className="divide-y divide-gray-100">
               {history.slice(0, 10).map(s => (
@@ -376,6 +377,39 @@ export const Focus = () => {
           ) : <p className="text-sm text-gray-500">No sessions yet. Start one next time you study.</p>}
         </CardContent>
       </Card>
+    </div>
+  );
+};
+
+// Share of each session spent in good posture, oldest to newest
+const FocusTrend: React.FC<{ sessions: SavedSession[] }> = ({ sessions }) => {
+  const W = 600, H = 130;
+  const x = (i: number) => 40 + (i * (W - 70)) / Math.max(1, sessions.length - 1);
+  const y = (v: number) => 100 - v * 0.85;
+  const d = sessions.map((s, i) => `${i ? 'L' : 'M'}${x(i)},${y(s.good_pct)}`).join(' ');
+  const first = sessions[0].good_pct, last = sessions[sessions.length - 1].good_pct;
+  return (
+    <div className="mb-4">
+      <p className="text-sm text-muted mb-1">
+        Good posture went from <strong className="text-ink">{first}%</strong> to <strong className="text-ink">{last}%</strong> over your last {sessions.length} sessions.
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`Good posture per focus session, from ${first}% to ${last}%`}>
+        {[0, 50, 100].map(v => (
+          <g key={v}>
+            <line x1={30} x2={W - 10} y1={y(v)} y2={y(v)} stroke="#E6EDEC" />
+            <text x={0} y={y(v) + 4} fontSize={11} fill="#46555A">{v}%</text>
+          </g>
+        ))}
+        <path d={d} fill="none" stroke="#00806E" strokeWidth={2.5} strokeLinejoin="round" />
+        {sessions.map((s, i) => (
+          <g key={s.id}>
+            <circle cx={x(i)} cy={y(s.good_pct)} r={4} fill="#fff" stroke="#00806E" strokeWidth={2.5} />
+            <text x={x(i)} y={124} textAnchor="middle" fontSize={11} fill="#46555A">
+              {new Date(s.started_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+            </text>
+          </g>
+        ))}
+      </svg>
     </div>
   );
 };

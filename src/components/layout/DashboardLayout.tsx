@@ -46,7 +46,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { label: 'Live Assessment', icon: Video, path: '/assessment' },
+    { label: 'Posture Check', icon: Video, path: '/assessment' },
     { label: 'Exercise Library', icon: BookOpen, path: '/exercises' },
     { label: 'Focus Mode', icon: Timer, path: '/focus' },
     { label: 'Progress Tracker', icon: BarChart2, path: '/progress' },

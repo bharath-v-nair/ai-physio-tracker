@@ -293,19 +293,19 @@ export const Assessment = () => {
     <div className="space-y-6 animate-in fade-in duration-500 h-full flex flex-col">
       <header className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Live Assessment</h1>
-          <p className="text-gray-500 mt-1">Position yourself clearly in the camera frame.</p>
+          <h1 className="text-[34px] md:text-[40px] leading-tight text-ink">Posture check</h1>
+          <p className="text-muted mt-1">About 20 seconds: facing the camera, then sideways.</p>
         </div>
         
         <div className="flex space-x-3">
           {!isActive ? (
-            <Button onClick={startCheck} className="rounded-full px-6" disabled={isSaving}>
+            <Button onClick={startCheck} disabled={isSaving}>
               <Play className="w-4 h-4 mr-2" />
-              Start Assessment
+              Start the check
             </Button>
           ) : (
             <>
-              <Button variant="danger" onClick={handleStopAndSave} className="rounded-full px-6">
+              <Button variant="danger" onClick={handleStopAndSave}>
                 <Save className="w-4 h-4 mr-2" />
                 {step === 'side' ? 'Skip side view & save' : 'Stop & Save'}
               </Button>
@@ -351,12 +351,13 @@ export const Assessment = () => {
                 </div>
               </>
             ) : (
-              <div className="text-center text-gray-400">
-                <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Play className="w-8 h-8 text-gray-500 ml-1" />
-                </div>
-                <p>Camera is currently off.</p>
-                <p className="text-sm">Click 'Start Assessment' to begin.</p>
+              <div className="text-left text-gray-300 max-w-sm px-6">
+                <p className="font-serif text-[26px] text-white mb-5">How the check works</p>
+                <ol className="space-y-4">
+                  <li className="flex gap-3"><span className="w-7 h-7 shrink-0 rounded-full border border-teal-400 text-teal-300 grid place-items-center text-sm font-semibold">1</span><span><strong className="text-white">Face the camera</strong> for 6 seconds. It measures head position, shoulder level and, if your hips are in view, lean.</span></li>
+                  <li className="flex gap-3"><span className="w-7 h-7 shrink-0 rounded-full border border-teal-400 text-teal-300 grid place-items-center text-sm font-semibold">2</span><span><strong className="text-white">Turn your chair sideways</strong> for 3 seconds. It measures your neck angle. You can skip this step.</span></li>
+                </ol>
+                <p className="text-sm text-gray-400 mt-5">Sit about an arm's length away with your shoulders in view. Frames are analysed and never saved.</p>
               </div>
             )}
           </Card>
@@ -369,7 +370,7 @@ export const Assessment = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Live Posture Score</h3>
                 <div className="flex items-baseline space-x-2">
-                  <span className="text-5xl font-bold text-gray-900">
+                  <span className="font-serif text-[56px] leading-none text-ink tabular">
                     {isActive ? (analysis?.score != null ? Math.round(analysis.score) : '--') : '--'}
                   </span>
                   <span className="text-gray-500">/100</span>
