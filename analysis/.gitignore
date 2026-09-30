@@ -1,0 +1,5 @@
+# Raw dataset (download with download_data.py instead of committing it)
+data/*.csv
+data/*.part
+.ipynb_checkpoints/
+__pycache__/
