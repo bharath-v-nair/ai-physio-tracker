@@ -3,6 +3,17 @@ import { useLocation } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Send, Bot, User, Paperclip, MessageSquare, Loader2 } from 'lucide-react';
 
+// Gemini replies use Markdown: show **bold** as bold and "* item" lines as bullets
+const formatAssistantText = (text: string) =>
+  text
+    .replace(/^(\s*)[*-] /gm, '$1• ')
+    .split(/(\*\*[^*]+\*\*)/g)
+    .map((part, i) =>
+      part.startsWith('**') && part.endsWith('**') && part.length > 4
+        ? <strong key={i}>{part.slice(2, -2)}</strong>
+        : part
+    );
+
 export const Assistant = () => {
   const location = useLocation();
   const [sessions, setSessions] = useState<any[]>([]);
@@ -201,7 +212,7 @@ export const Assistant = () => {
               }`}>
                 {msg.role === 'assistant' ? (
                   <div className="prose prose-sm md:prose-base max-w-none whitespace-pre-wrap">
-                    {msg.content}
+                    {formatAssistantText(msg.content)}
                   </div>
                 ) : (
                   <p className="whitespace-pre-wrap">{msg.content}</p>
