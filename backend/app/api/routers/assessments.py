@@ -5,6 +5,7 @@ from app.schemas.assessment import AssessmentCreate, AssessmentInDB
 from app.models.assessment import Assessment
 from app.ai.pose_detector import PoseDetector
 from app.ai.posture_analyzer import PostureAnalyzer
+from app.ai.recorder import LandmarkRecorder
 import json
 import asyncio
 
@@ -24,6 +25,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...), db =
     except Exception as e:
         await websocket.close(code=1008)
         return
+    recorder = LandmarkRecorder("posture_assessment")
         
     try:
         while True:
@@ -43,6 +45,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...), db =
             # For simplicity in this sprint, we run it directly (mediapipe is fast)
             landmarks, (w, h) = pose_detector.process_frame(base64_img)
             analysis = posture_analyzer.analyze(landmarks)
+            recorder.record(landmarks, analysis)
             
             await websocket.send_json({
                 "landmarks": landmarks,
@@ -62,6 +65,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...), db =
             await websocket.close()
         except:
             pass
+    finally:
+        recorder.close()
 
 
 @router.post("", response_model=AssessmentInDB, status_code=status.HTTP_201_CREATED)

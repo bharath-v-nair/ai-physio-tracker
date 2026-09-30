@@ -38,6 +38,7 @@ import json
 from app.api.deps import get_db, get_current_user
 from app.ai.pose_detector import PoseDetector
 from app.ai.exercises.exercise_factory import ExerciseFactory
+from app.ai.recorder import LandmarkRecorder
 from app.schemas.rehab import ExerciseSessionCreate, ExerciseSessionInDB
 from app.models.exercise_session import ExerciseSession
 
@@ -81,6 +82,7 @@ async def live_exercise_endpoint(websocket: WebSocket, token: str = Query(...), 
         return
     pose_detector = PoseDetector()
     analyzer = ExerciseFactory.get_analyzer(exercise_name)
+    recorder = LandmarkRecorder(exercise_name)
     
     try:
         while True:
@@ -92,6 +94,7 @@ async def live_exercise_endpoint(websocket: WebSocket, token: str = Query(...), 
                 landmarks, dims = pose_detector.process_frame(frame_data)
                 
                 analysis = analyzer.analyze(landmarks, dims)
+                recorder.record(landmarks, analysis)
                 
                 await websocket.send_json({
                     "type": "analysis_result",
@@ -108,6 +111,7 @@ async def live_exercise_endpoint(websocket: WebSocket, token: str = Query(...), 
                 dims = message.get("dimensions", (640, 480))
                 
                 analysis = analyzer.analyze(landmarks, dims)
+                recorder.record(landmarks, analysis)
                 
                 await websocket.send_json({
                     "type": "analysis_result",
@@ -128,4 +132,5 @@ async def live_exercise_endpoint(websocket: WebSocket, token: str = Query(...), 
         except:
             pass
     finally:
+        recorder.close()
         del pose_detector
