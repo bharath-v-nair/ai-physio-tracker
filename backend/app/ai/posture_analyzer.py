@@ -20,38 +20,29 @@ class PostureAnalyzer:
         # LEFT_HIP = 23, RIGHT_HIP = 24
         
         try:
-            # 1. Forward Head Posture (Using side profile, e.g., right side)
-            # Compare ear to shoulder horizontal alignment
-            right_ear = (landmarks[8]['x'], landmarks[8]['y'])
-            right_shoulder = (landmarks[12]['x'], landmarks[12]['y'])
-            
-            # Simple heuristic: ear should be vertically aligned with shoulder
-            # Calculate angle relative to vertical
-            dx_neck = right_ear[0] - right_shoulder[0]
-            dy_neck = right_ear[1] - right_shoulder[1]
-            neck_angle = abs(calculate_slope_angle(right_shoulder, right_ear))
-            
-            # Ideal neck angle is near 90 degrees (vertical)
-            # If it leans forward (towards 0 or 180 depending on facing direction), flag it
-            # We use absolute X distance relative to shoulder width for a robust proxy
+            # 1. Head Tilt / Side Shift
+            # With a front-facing camera we can't see the head move forward, but we can
+            # see it drift or tilt sideways: compare the midpoint of the ears with the
+            # midpoint of the shoulders, relative to shoulder width.
             shoulder_width = calculate_distance(
                 (landmarks[11]['x'], landmarks[11]['y']), 
                 (landmarks[12]['x'], landmarks[12]['y'])
             )
+            mid_ear_x = (landmarks[7]['x'] + landmarks[8]['x']) / 2
+            mid_shoulder_x = (landmarks[11]['x'] + landmarks[12]['x']) / 2
+            head_offset_ratio = abs(mid_ear_x - mid_shoulder_x) / (shoulder_width + 1e-6)
             
-            # Distance of ear in front of shoulder (normalized)
-            head_forward_ratio = abs(dx_neck) / (shoulder_width + 1e-6)
-            
-            if head_forward_ratio > 0.4:
+            if head_offset_ratio > 0.12:
                 issues.append({
-                    "name": "Forward Head Posture",
-                    "severity": "High" if head_forward_ratio > 0.6 else "Moderate",
-                    "recommendation": "Tuck your chin in and align your ears over your shoulders."
+                    "name": "Head Tilt / Side Shift",
+                    "severity": "High" if head_offset_ratio > 0.2 else "Moderate",
+                    "recommendation": "Bring your head back to the centre, level your ears and keep them over your shoulders."
                 })
-                score -= 20 if head_forward_ratio > 0.6 else 10
+                score -= 20 if head_offset_ratio > 0.2 else 10
                 
             # 2. Uneven Shoulders
             left_shoulder = (landmarks[11]['x'], landmarks[11]['y'])
+            right_shoulder = (landmarks[12]['x'], landmarks[12]['y'])
             shoulder_slope = abs(calculate_slope_angle(left_shoulder, right_shoulder))
             # 0 or 180 is perfectly horizontal
             shoulder_deviation = min(shoulder_slope, abs(180 - shoulder_slope))

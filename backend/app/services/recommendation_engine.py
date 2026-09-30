@@ -24,7 +24,7 @@ class RecommendationEngine:
         target_keys = []
         for issue in detected_issues:
             issue_lower = issue.lower()
-            if "forward" in issue_lower or "neck" in issue_lower:
+            if "forward" in issue_lower or "neck" in issue_lower or "head" in issue_lower:
                 target_keys.append("forward_neck")
             elif "round" in issue_lower:
                 target_keys.append("round_shoulder")

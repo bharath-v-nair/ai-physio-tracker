@@ -21,7 +21,7 @@ An intelligent, real-time computer vision physical therapy and posture rehabilit
 
 ### 2. 🩺 Posture Assessment & Diagnostics
 * Interactive camera-based posture alignment detector.
-* Identifies posture concerns such as **Forward Neck**, **Uneven Shoulders**, **Round Shoulders**, and **Body Lean**.
+* Uses a front-facing webcam to flag **Head Tilt / Side Shift**, **Uneven Shoulders** and **Body Lean** (forward head posture would need a side-on camera, so it isn't claimed).
 * Generates comprehensive Assessment Reports with score breakdown and target recovery recommendations.
 
 ### 3. 📚 Targeted Exercise Library
