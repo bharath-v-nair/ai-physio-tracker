@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 from app.services.gemini_service import GeminiService
+from app.services.safety import find_red_flag, safety_reply
 
 router = APIRouter()
 gemini_service = GeminiService()
@@ -118,14 +119,19 @@ RULES:
 2. ENCOURAGE safe exercise practices and advise users to stop if an exercise causes pain.
 3. USE the user's actual saved data (provided above) when asked about their progress. Do NOT invent values, sessions, or results.
 4. DO NOT diagnose diseases or injuries, and do not claim to replace a physiotherapist.
-5. DO NOT prescribe medication or claim medical certainty.
-6. IF the user mentions severe pain, sudden injury, numbness, weakness, or emergency symptoms, give a cautious response encouraging appropriate professional medical evaluation.
+5. DO NOT prescribe or suggest medication, supplements, diets, food or drinks, and do not claim medical certainty.
+6. IF the user mentions any symptom (pain that is severe, sudden or worsening, dizziness, fainting, chest pain, breathing trouble, numbness, tingling, weakness, vision changes, or an injury), do NOT suggest causes or home remedies. Tell them to stop exercising, rest somewhere safe, and see a doctor or physiotherapist; for anything severe or sudden, tell them to call 112.
+7. STAY on posture, the app's exercises and the user's progress. For other health topics, say you can only help with posture and exercise, and suggest a professional.
 
 Be friendly, concise, and supportive.
 """
 
-    # 2. Get AI Response from Gemini
-    ai_result = gemini_service.get_chat_response(message_in.content, system_instruction, history)
+    # 2. Warning signs get a fixed reply; everything else goes to Gemini
+    symptom = find_red_flag(message_in.content)
+    if symptom:
+        ai_result = {"answer": safety_reply(symptom), "sources": []}
+    else:
+        ai_result = gemini_service.get_chat_response(message_in.content, system_instruction, history)
     
     # Save Assistant message
     assistant_msg = ChatMessage(
