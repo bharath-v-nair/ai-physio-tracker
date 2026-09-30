@@ -32,9 +32,10 @@ An intelligent, real-time computer vision physical therapy and posture rehabilit
 * Dynamic rehab program generation based on user assessment history.
 * Daily exercise schedule tracking with session completion status.
 
-### 5. 🤖 AI Physio Assistant (RAG Chatbot)
-* Intelligent assistant powered by a Retrieval-Augmented Generation (RAG) knowledge base.
-* Answers physiotherapy queries, offers posture improvement advice, and suggests exercise modifications.
+### 5. 🤖 AI Physio Assistant (Google Gemini)
+* Chat assistant powered by Google Gemini, with automatic fallback to other Gemini Flash models if one is busy.
+* Each question is sent with the user's own saved data (latest posture assessment, active plan, recent sessions), so answers refer to real progress.
+* Explains exercises and posture concepts; it does not diagnose, and it refers pain or warning signs to a clinician.
 
 ### 6. 📊 Progress Analytics & Profile
 * Historical tracking of completed exercise sessions, average form scores, total practice time, and weekly streak metrics.
@@ -132,7 +133,7 @@ The app is deployed with the frontend on **Vercel**, the backend on **Render** a
 │   │   │   └── posture_analyzer.py   # Posture assessment logic
 │   │   ├── api/                      # REST API & WebSocket routers
 │   │   ├── models/                   # SQLAlchemy DB models
-│   │   ├── rag/                      # RAG Chatbot engine
+│   │   ├── rag/                      # Planned knowledge-base retrieval (not wired in yet)
 │   │   └── schemas/                  # Pydantic request/response schemas
 │   └── main.py                       # FastAPI entrypoint
 │
