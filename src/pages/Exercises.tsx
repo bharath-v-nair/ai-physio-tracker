@@ -135,7 +135,7 @@ export const Exercises = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {exercises.map((exercise) => (
-              <Card key={exercise.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
+              <Card key={exercise.id} className="group hover:border-primary transition-colors duration-150 flex flex-col h-full">
                 <div className="relative h-48 overflow-hidden rounded-t-[20px] bg-gray-100 shrink-0">
                   <img 
                     src={`https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=400`} 

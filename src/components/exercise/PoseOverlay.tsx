@@ -145,7 +145,7 @@ export const PoseOverlay: React.FC<PoseOverlayProps> = ({ isPaused, onLandmarks,
     }, [isPaused]);
 
     return (
-        <div className="lg:col-span-2 relative bg-black rounded-3xl overflow-hidden shadow-2xl ring-1 ring-gray-900/10 flex items-center justify-center">
+        <div className="lg:col-span-2 relative bg-black rounded-3xl overflow-hidden ring-1 ring-gray-900/10 flex items-center justify-center">
             <video 
                 ref={videoRef} 
                 playsInline 
@@ -163,7 +163,7 @@ export const PoseOverlay: React.FC<PoseOverlayProps> = ({ isPaused, onLandmarks,
             
             {isPaused && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-black/80 backdrop-blur px-8 py-4 rounded-full text-white font-semibold text-lg tracking-wider flex items-center shadow-2xl">
+                    <div className="bg-black/80 backdrop-blur px-8 py-4 rounded-full text-white font-semibold text-lg flex items-center">
                         <Pause className="w-6 h-6 mr-3 text-yellow-400" />
                         PAUSED
                     </div>

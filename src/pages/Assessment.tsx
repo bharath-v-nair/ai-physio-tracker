@@ -317,7 +317,7 @@ export const Assessment = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
         {/* Main Camera View */}
         <div className="lg:col-span-2 flex flex-col">
-          <Card className="flex-1 min-h-[500px] relative overflow-hidden bg-gray-900 flex flex-col items-center justify-center border-0 shadow-2xl">
+          <Card className="flex-1 min-h-[500px] relative overflow-hidden bg-gray-900 flex flex-col items-center justify-center ">
             {isActive ? (
               <>
                 <Webcam
@@ -367,7 +367,7 @@ export const Assessment = () => {
           <Card>
             <CardContent className="pt-6 space-y-6">
               <div>
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Live Posture Score</h3>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Live Posture Score</h3>
                 <div className="flex items-baseline space-x-2">
                   <span className="text-5xl font-bold text-gray-900">
                     {isActive ? (analysis?.score != null ? Math.round(analysis.score) : '--') : '--'}
@@ -385,7 +385,7 @@ export const Assessment = () => {
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Detected Issues</h3>
+                <h3 className="text-sm font-medium text-gray-500 mb-4">Detected Issues</h3>
                 {isActive ? (
                   <div className="space-y-3">
                     {analysis?.issues && analysis.issues.length > 0 ? (

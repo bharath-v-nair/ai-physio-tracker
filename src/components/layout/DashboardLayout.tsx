@@ -54,6 +54,12 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     { label: 'Profile', icon: User, path: '/profile' },
   ];
 
+  // Exercise pages live under /dashboard/exercises but belong to the library; otherwise pick the longest matching path
+  const path = location.pathname.startsWith('/dashboard/exercises') ? '/exercises' : location.pathname;
+  const activePath = navItems
+    .filter(item => path === item.path || path.startsWith(item.path + '/'))
+    .sort((a, b) => b.path.length - a.path.length)[0]?.path;
+
   const logo = (
     <Link to="/dashboard" className="flex items-center gap-2.5">
       <BrandMark />
@@ -70,7 +76,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
             icon={item.icon}
             label={item.label}
             to={item.path}
-            active={location.pathname === item.path || location.pathname.startsWith(item.path + '/')}
+            active={item.path === activePath}
           />
         ))}
       </nav>

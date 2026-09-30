@@ -186,7 +186,7 @@ export const Assistant = () => {
       </div>
 
       {/* Chat Area */}
-      <Card className="flex-1 flex flex-col overflow-hidden shadow-lg border-gray-200/60">
+      <Card className="flex-1 flex flex-col overflow-hidden border-gray-200/60">
         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50/50">
           
           {messages.length === 0 && !isLoading && (

@@ -105,7 +105,7 @@ export const Progress = () => {
 
       {/* Top Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-[#00806E] to-[#006B5C] text-white border-0 shadow-lg shadow-blue-500/20 md:col-span-2">
+        <Card className="bg-primary text-white border-0 md:col-span-2">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -172,7 +172,7 @@ export const Progress = () => {
                   <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#888' }} axisLine={false} tickLine={false} />
                   <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#888' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                  <Line type="monotone" dataKey="score" name="Posture score" stroke="#00806E" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                  <Line type="linear" dataKey="score" name="Posture score" stroke="#00806E" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             )}
@@ -199,8 +199,8 @@ export const Progress = () => {
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="completed" name="Completed" stackId="s" fill="#10b981" />
-                  <Bar dataKey="skipped" name="Skipped" stackId="s" fill="#e5e7eb" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="completed" name="Completed" stackId="s" fill="#00806E" />
+                  <Bar dataKey="skipped" name="Skipped" stackId="s" fill="#CFDAD8" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}

@@ -107,16 +107,16 @@ export const RehabPlan = () => {
                     
                     <div className="flex items-center space-x-6 mt-4">
                       <div className="flex flex-col">
-                        <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Sets</span>
+                        <span className="text-xs text-gray-500 font-semibold">Sets</span>
                         <span className="text-lg font-medium text-gray-900">{planEx.sets}</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Reps</span>
+                        <span className="text-xs text-gray-500 font-semibold">Reps</span>
                         <span className="text-lg font-medium text-gray-900">{planEx.repetitions}</span>
                       </div>
                       {planEx.duration_seconds && (
                         <div className="flex flex-col">
-                          <span className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Hold</span>
+                          <span className="text-xs text-gray-500 font-semibold">Hold</span>
                           <span className="text-lg font-medium text-gray-900">{planEx.duration_seconds}s</span>
                         </div>
                       )}

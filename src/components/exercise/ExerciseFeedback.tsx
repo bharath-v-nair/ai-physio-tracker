@@ -26,9 +26,9 @@ export const ExerciseFeedback: React.FC<ExerciseFeedbackProps> = ({ formScore, s
 
     return (
         <>
-            <Card className="bg-white border-0 shadow-lg rounded-2xl">
+            <Card className="bg-white rounded-2xl">
                 <CardContent className="p-6">
-                    <span className="uppercase text-xs font-semibold tracking-wider text-gray-500 block mb-2">Exercise Form Score</span>
+                    <span className=" text-xs font-semibold text-gray-500 block mb-2">Exercise Form Score</span>
                     <div className="flex items-center justify-between mb-1">
                         <span className={`text-4xl font-bold ${getScoreColor(formScore)}`}>{formScore}%</span>
                         <Badge variant="default" className={`border-0 ${getScoreColor(formScore)} bg-opacity-10`}>
@@ -47,9 +47,9 @@ export const ExerciseFeedback: React.FC<ExerciseFeedbackProps> = ({ formScore, s
                 </CardContent>
             </Card>
 
-            <Card className="bg-white border-0 shadow-lg rounded-2xl flex-1 flex flex-col">
+            <Card className="bg-white rounded-2xl flex-1 flex flex-col">
                 <CardContent className="p-6 flex flex-col h-full">
-                    <span className="uppercase text-xs font-semibold tracking-wider text-gray-500 block mb-4">Live Feedback</span>
+                    <span className=" text-xs font-semibold text-gray-500 block mb-4">Live Feedback</span>
                     
                     <div className="mb-4">
                         <Badge variant={status === 'Good Form' ? 'success' : status === 'Not Supported' ? 'info' : 'warning'} className="mb-2">

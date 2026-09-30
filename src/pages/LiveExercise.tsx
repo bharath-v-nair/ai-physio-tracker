@@ -257,7 +257,7 @@ export const LiveExercise = () => {
     if (sessionFinished) {
         return (
             <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pt-8">
-                <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden">
+                <Card className="rounded-3xl overflow-hidden">
                     <div className="bg-gray-900 p-8 text-center">
                         <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
                         <h2 className="text-3xl font-bold text-white mb-2">Session Complete</h2>
@@ -270,29 +270,29 @@ export const LiveExercise = () => {
                     <CardContent className="p-8 space-y-8">
                         <div className="grid grid-cols-2 gap-6">
                             <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
-                                <p className="text-sm font-medium text-gray-500 mb-1 uppercase tracking-wider">Exercise</p>
+                                <p className="text-sm font-medium text-gray-500 mb-1">Exercise</p>
                                 <p className="text-xl font-bold text-gray-900">{exercise.name}</p>
                             </div>
                             <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
-                                <p className="text-sm font-medium text-gray-500 mb-1 uppercase tracking-wider">Completed Reps</p>
+                                <p className="text-sm font-medium text-gray-500 mb-1">Completed Reps</p>
                                 <p className="text-xl font-bold text-gray-900">
                                     {reps} <span className="text-gray-400 text-sm">/ {TARGET_REPS}</span>
                                 </p>
                             </div>
                             <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
-                                <p className="text-sm font-medium text-gray-500 mb-1 uppercase tracking-wider">Form Score</p>
+                                <p className="text-sm font-medium text-gray-500 mb-1">Form Score</p>
                                 <p className={`text-xl font-bold ${getScoreColor(formScore)}`}>
                                     {formScore}% <span className="text-sm font-normal text-gray-500">({getScoreLabel(formScore)})</span>
                                 </p>
                             </div>
                             <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
-                                <p className="text-sm font-medium text-gray-500 mb-1 uppercase tracking-wider">Duration</p>
+                                <p className="text-sm font-medium text-gray-500 mb-1">Duration</p>
                                 <p className="text-xl font-bold text-gray-900">{formatTime(duration)}</p>
                             </div>
                         </div>
 
                         <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
-                            <p className="text-sm font-semibold text-blue-900 mb-2 uppercase tracking-wider flex items-center">
+                            <p className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
                                 <Activity className="w-4 h-4 mr-2" />
                                 Final Form Feedback
                             </p>
@@ -379,7 +379,7 @@ export const LiveExercise = () => {
                 <div className="flex flex-col space-y-4">
                     <RepCounter reps={reps} targetReps={TARGET_REPS} />
                     {live && live.phase === 'calibrating' && (
-                        <Card className="bg-white border-0 shadow-lg rounded-2xl">
+                        <Card className="bg-white rounded-2xl">
                             <CardContent className="p-5">
                                 <p className="text-sm font-semibold text-gray-900 mb-2">Measuring your start position</p>
                                 <div className="w-full bg-gray-100 rounded-full h-2">
@@ -389,7 +389,7 @@ export const LiveExercise = () => {
                         </Card>
                     )}
                     {live && live.phase === 'active' && (
-                        <Card className="bg-white border-0 shadow-lg rounded-2xl">
+                        <Card className="bg-white rounded-2xl">
                             <CardContent className="p-5">
                                 <div className="flex items-center justify-between mb-2">
                                     <p className="text-sm font-semibold text-gray-900">Your movement</p>

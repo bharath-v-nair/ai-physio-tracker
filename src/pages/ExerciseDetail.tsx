@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { ExerciseDemo, DEMO_KIND } from '../components/exercise/ExerciseDemo';
 import { ArrowLeft, Clock, Target, AlertTriangle, Lightbulb, PlayCircle } from 'lucide-react';
 
 // Exercises with a live camera analyser (backend/app/ai/exercises/exercise_factory.py)
@@ -45,53 +46,42 @@ export const ExerciseDetail = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-300 pb-12">
-      <Button variant="outline" onClick={() => navigate(-1)} className="mb-4">
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="-ml-3">
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back
       </Button>
       
-      <div 
-        className="w-full h-64 md:h-96 rounded-2xl bg-cover bg-center shadow-lg relative overflow-hidden"
-        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=1200')` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-        <div className="absolute bottom-0 left-0 p-8 text-white">
-          <div className="flex items-center space-x-3 mb-2">
-            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium border border-white/30">
-              {exercise.difficulty}
-            </span>
-            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium border border-white/30">
-              {exercise.body_part}
-            </span>
+      <header className="bg-white border border-rule rounded-[4px] grid md:grid-cols-[1fr_280px] overflow-hidden">
+        <div className="p-6 md:p-8 flex flex-col">
+          <div className="flex items-center gap-2 mb-3 text-[13px] text-muted">
+            <span>{exercise.difficulty}</span><span aria-hidden="true">/</span><span>{exercise.body_part}</span>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight">{exercise.name}</h1>
-          <p className="mt-2 text-gray-200 max-w-2xl">{exercise.description}</p>
-          <div className="mt-6 flex gap-4">
+          <h1 className="text-[34px] md:text-[40px] leading-tight text-ink">{exercise.name}</h1>
+          <p className="mt-2 text-muted max-w-xl">{exercise.description}</p>
+          <div className="mt-auto pt-6 flex flex-wrap gap-3">
             {LIVE_EXERCISES.includes(exercise.name) ? (
-                <Button onClick={() => navigate(`/dashboard/exercises/${exercise.id}/live`)} size="lg" className="bg-[#00806E] hover:bg-blue-600 text-white border-0 shadow-lg shadow-blue-900/20">
-                <PlayCircle className="w-5 h-5 mr-2" />
-                Start Live Exercise
-                </Button>
+              <Button onClick={() => navigate(`/dashboard/exercises/${exercise.id}/live`)} size="lg">
+                <PlayCircle className="w-5 h-5 mr-2" aria-hidden="true" />
+                Start with camera
+              </Button>
             ) : (
-                <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
-                    <p className="text-sm font-medium text-white flex items-center">
-                        <AlertTriangle className="w-4 h-4 mr-2 text-yellow-300" />
-                        Live analysis is currently available for {LIVE_EXERCISES.join(', ')}.
-                    </p>
-                </div>
+              <p className="text-sm text-muted flex items-center bg-paper border border-rule rounded-[6px] px-3 py-2">
+                <AlertTriangle className="w-4 h-4 mr-2 text-flag" aria-hidden="true" />
+                Live counting is available for {LIVE_EXERCISES.join(', ')}.
+              </p>
             )}
-            <Button 
-                onClick={() => navigate('/assistant', { state: { context_exercise: exercise.name } })}
-                variant="outline" 
-                size="lg" 
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-md transition-colors"
-            >
-                <Lightbulb className="w-5 h-5 mr-2" />
-                Ask AI about this exercise
+            <Button onClick={() => navigate('/assistant', { state: { context_exercise: exercise.name } })} variant="secondary" size="lg">
+              <Lightbulb className="w-5 h-5 mr-2" aria-hidden="true" />
+              Ask the assistant
             </Button>
           </div>
         </div>
-      </div>
+        {DEMO_KIND[exercise.name] ? (
+          <div className="border-t md:border-t-0 md:border-l border-rule p-3 bg-paper">
+            <ExerciseDemo exerciseName={exercise.name} />
+          </div>
+        ) : null}
+      </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
         <div className="md:col-span-2 space-y-8">
@@ -100,7 +90,7 @@ export const ExerciseDetail = () => {
             <div className="space-y-4">
               {Array.isArray(exercise.instructions) && exercise.instructions.map((step: string, index: number) => (
                 <div key={index} className="flex items-start">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mr-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full border-[1.5px] border-primary text-primary flex items-center justify-center font-semibold mr-4">
                     {index + 1}
                   </div>
                   <p className="text-gray-700 leading-relaxed mt-1">{step}</p>
@@ -134,7 +124,7 @@ export const ExerciseDetail = () => {
               <div>
                 <div className="flex items-center text-gray-500 mb-1">
                   <Target className="w-4 h-4 mr-2" />
-                  <h3 className="text-sm font-semibold uppercase tracking-wider">Target Muscle</h3>
+                  <h3 className="text-sm font-semibold">Target Muscle</h3>
                 </div>
                 <p className="text-lg font-medium text-gray-900">{exercise.target_muscle}</p>
               </div>
@@ -143,7 +133,7 @@ export const ExerciseDetail = () => {
                 <div>
                   <div className="flex items-center text-gray-500 mb-1">
                     <AlertTriangle className="w-4 h-4 mr-2" />
-                    <h3 className="text-sm font-semibold uppercase tracking-wider">Safety Note</h3>
+                    <h3 className="text-sm font-semibold">Safety Note</h3>
                   </div>
                   <p className="text-sm text-gray-700">{exercise.safety_notes}</p>
                 </div>
@@ -153,7 +143,7 @@ export const ExerciseDetail = () => {
                 <div>
                   <div className="flex items-center text-blue-600 mb-2">
                     <Lightbulb className="w-4 h-4 mr-2" />
-                    <h3 className="text-sm font-semibold uppercase tracking-wider">Pro Tips</h3>
+                    <h3 className="text-sm font-semibold">Pro Tips</h3>
                   </div>
                   <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                     {exercise.tips.map((tip: string, idx: number) => (
