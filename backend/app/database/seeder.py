@@ -2,16 +2,12 @@ import json
 from app.database.session import SessionLocal
 from app.models.exercise import Exercise
 
+# Removed from the library because they repeat another exercise
+RETIRED = ["Doorway Chest Stretch", "Scapular Retraction (Uneven)", "Shoulder Blade Squeeze"]
+
+
 def seed_exercises():
     db = SessionLocal()
-
-    # Runs on every server start, so only seed an empty table.
-    # Deleting existing exercises would break saved sessions and plans that point to them.
-    existing = db.query(Exercise).count()
-    if existing > 0:
-        print(f"Exercises already seeded ({existing} found). Skipping.")
-        db.close()
-        return
 
     exercises_data = [
         # FORWARD HEAD
@@ -26,10 +22,11 @@ def seed_exercises():
             "duration": "5 minutes",
             "description": "A simple exercise to strengthen the deep neck muscles and correct forward head posture.",
             "instructions": json.dumps([
-                "Sit or stand tall with your shoulders relaxed.",
-                "Look straight ahead and gently glide your head straight back, as if making a double chin.",
-                "Keep your chin parallel to the floor, do not tilt it up or down.",
-                "Hold for 3-5 seconds, then release."
+                "Turn your chair so one shoulder points at the screen: the camera needs to see you from the side.",
+                "Sit tall with your shoulders relaxed and look straight ahead.",
+                "Gently glide your head straight back, as if making a double chin.",
+                "Keep your chin level: don't nod down or tilt it up.",
+                "Hold for 2-5 seconds, then relax forward. The app says each rep out loud."
             ]),
             "common_mistakes": json.dumps(["Tilting the head up or down", "Shrugging the shoulders"]),
             "tips": json.dumps(["Imagine a string pulling the top of your head up", "Place a finger on your chin to guide the movement"]),
@@ -118,68 +115,48 @@ def seed_exercises():
             "tips": json.dumps(["Focus on moving the shoulder blades backward and slightly down"]),
             "safety_notes": "None"
         },
-        {
-            "name": "Doorway Chest Stretch",
-            "body_part": "Chest",
-            "target_muscle": "Pectoralis Major & Minor",
-            "target_issue": "round_shoulder",
-            "difficulty": "Beginner",
-            "sets": 3,
-            "repetitions": "1",
-            "duration": "30 seconds",
-            "description": "Opens up tight chest muscles caused by slouching.",
-            "instructions": json.dumps([
-                "Stand in an open doorway.",
-                "Place your forearms on the doorframe, elbows bent at 90 degrees.",
-                "Gently step one foot forward and lean your chest into the doorway until you feel a stretch.",
-                "Hold for 30 seconds."
-            ]),
-            "common_mistakes": json.dumps(["Leaning with the head instead of the chest", "Elbows too high or too low"]),
-            "tips": json.dumps(["Vary the height of your elbows to stretch different parts of the chest"]),
-            "safety_notes": "Avoid overstretching, which can irritate the shoulder joint."
-        },
 
+        {
+            "name": "Neck Side-Bend Stretch",
+            "body_part": "Neck",
+            "target_muscle": "Upper Trapezius & Scalenes",
+            "target_issue": "forward_neck",
+            "difficulty": "Beginner",
+            "sets": 1,
+            "repetitions": "6",
+            "duration": "3 minutes",
+            "description": "Eases the neck and upper-shoulder tension that builds up during long hours at a desk.",
+            "instructions": json.dumps([
+                "Sit tall facing the camera, shoulders relaxed and level.",
+                "Slowly tilt one ear towards the same shoulder until you feel a gentle stretch.",
+                "Hold for 5 seconds while breathing slowly.",
+                "Bring your head back to the middle, then repeat on the other side."
+            ]),
+            "common_mistakes": json.dumps(["Turning the head instead of tilting it", "Lifting the shoulder up to meet the ear"]),
+            "tips": json.dumps(["Let the weight of your head do the work", "Keep your nose pointing at the screen"]),
+            "safety_notes": "Stretch only to a gentle pull. Stop if you feel tingling or pain down the arm."
+        },
+        {
+            "name": "Shoulder Shrugs",
+            "body_part": "Shoulders",
+            "target_muscle": "Upper Trapezius",
+            "target_issue": "uneven_shoulder",
+            "difficulty": "Beginner",
+            "sets": 2,
+            "repetitions": "10",
+            "duration": "3 minutes",
+            "description": "Builds even strength in the muscles that lift the shoulders and relieves desk-work tension.",
+            "instructions": json.dumps([
+                "Sit tall facing the camera with your arms relaxed.",
+                "Lift both shoulders straight up towards your ears.",
+                "Hold for 1 second at the top.",
+                "Lower them slowly and evenly."
+            ]),
+            "common_mistakes": json.dumps(["Lifting one shoulder more than the other", "Rolling the head forward"]),
+            "tips": json.dumps(["Move both shoulders together, like an elevator"]),
+            "safety_notes": "Keep the movement slow and pain-free."
+        },
         # UNEVEN SHOULDERS
-        {
-            "name": "Scapular Retraction (Uneven)",
-            "body_part": "Back",
-            "target_muscle": "Rhomboids",
-            "target_issue": "uneven_shoulder",
-            "difficulty": "Beginner",
-            "sets": 3,
-            "repetitions": "15",
-            "duration": "5 minutes",
-            "description": "A basic movement to train shoulder blade control and symmetry.",
-            "instructions": json.dumps([
-                "Sit or stand tall.",
-                "Squeeze your shoulder blades together as if trying to hold a pencil between them.",
-                "Hold for 3-5 seconds.",
-                "Relax and repeat."
-            ]),
-            "common_mistakes": json.dumps(["Shrugging the shoulders up towards the ears"]),
-            "tips": json.dumps(["Focus on moving the shoulder blades backward and slightly down"]),
-            "safety_notes": "None"
-        },
-        {
-            "name": "Shoulder Blade Squeeze",
-            "body_part": "Back",
-            "target_muscle": "Middle Trapezius",
-            "target_issue": "uneven_shoulder",
-            "difficulty": "Beginner",
-            "sets": 3,
-            "repetitions": "12",
-            "duration": "5 minutes",
-            "description": "Helps balance the muscles responsible for shoulder height.",
-            "instructions": json.dumps([
-                "Sit up straight in a chair.",
-                "Keep your arms relaxed at your sides.",
-                "Pull your shoulder blades back and down.",
-                "Hold for 5 seconds."
-            ]),
-            "common_mistakes": json.dumps(["Lifting the shoulders while squeezing"]),
-            "tips": json.dumps(["Use a mirror to ensure your shoulders remain level."]),
-            "safety_notes": "Stop if you experience nerve pain."
-        },
         {
             "name": "Wall Posture Hold",
             "body_part": "Full Body",
@@ -325,12 +302,26 @@ def seed_exercises():
         }
     ]
 
+    # Runs on every server start. Exercises are matched by name: new ones are added and
+    # existing ones updated in place, so saved sessions and plans keep pointing at the same rows.
+    added = updated = 0
     for ex_data in exercises_data:
-        exercise = Exercise(**ex_data)
-        db.add(exercise)
-        
+        exercise = db.query(Exercise).filter(Exercise.name == ex_data["name"]).first()
+        if exercise:
+            for field, value in ex_data.items():
+                setattr(exercise, field, value)
+            updated += 1
+        else:
+            db.add(Exercise(**ex_data))
+            added += 1
+
+    # Duplicates of other exercises: hidden from the library and from new plans, never deleted
+    retired = db.query(Exercise).filter(Exercise.name.in_(RETIRED)).all()
+    for exercise in retired:
+        exercise.target_issue = "retired"
+
     db.commit()
-    print(f"Successfully seeded {len(exercises_data)} exercises.")
+    print(f"Exercises: {added} added, {updated} updated, {len(retired)} retired.")
     db.close()
 
 if __name__ == "__main__":
