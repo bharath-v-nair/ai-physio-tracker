@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -14,5 +15,13 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-flash-latest"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def fix_postgres_scheme(cls, v: str) -> str:
+        # Some hosts give "postgres://", but SQLAlchemy only accepts "postgresql://"
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql://", 1)
+        return v
 
 settings = Settings()

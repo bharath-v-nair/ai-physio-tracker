@@ -4,10 +4,14 @@ from app.models.exercise import Exercise
 
 def seed_exercises():
     db = SessionLocal()
-    
-    print("Clearing old exercises...")
-    db.query(Exercise).delete()
-    db.commit()
+
+    # Runs on every server start, so only seed an empty table.
+    # Deleting existing exercises would break saved sessions and plans that point to them.
+    existing = db.query(Exercise).count()
+    if existing > 0:
+        print(f"Exercises already seeded ({existing} found). Skipping.")
+        db.close()
+        return
 
     exercises_data = [
         # FORWARD HEAD
