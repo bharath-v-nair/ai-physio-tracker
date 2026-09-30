@@ -18,6 +18,9 @@ export const PoseOverlay: React.FC<PoseOverlayProps> = ({ isPaused, onLandmarks,
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const poseRef = useRef<any>(null);
     const cameraRef = useRef<any>(null);
+    // The camera loop is set up once, so it reads the latest pause state from a ref
+    const isPausedRef = useRef(isPaused);
+    isPausedRef.current = isPaused;
 
     useEffect(() => {
         let isMounted = true;
@@ -68,7 +71,7 @@ export const PoseOverlay: React.FC<PoseOverlayProps> = ({ isPaused, onLandmarks,
                                         { color: '#60A5FA', lineWidth: 1.5, radius: 4 });
                             
                             // Send to parent
-                            if (!isPaused) {
+                            if (!isPausedRef.current) {
                                 // Extract landmarks as JSON-serializable array
                                 const landmarksData = results.poseLandmarks.map((lm: any) => ({
                                     x: lm.x,
@@ -92,7 +95,7 @@ export const PoseOverlay: React.FC<PoseOverlayProps> = ({ isPaused, onLandmarks,
 
             const camera = new Camera(videoRef.current, {
                 onFrame: async () => {
-                    if (isMounted && !isPaused && videoRef.current && poseRef.current) {
+                    if (isMounted && !isPausedRef.current && videoRef.current && poseRef.current) {
                         try {
                             await poseRef.current.send({ image: videoRef.current });
                         } catch (e) {

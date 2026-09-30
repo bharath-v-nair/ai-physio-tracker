@@ -2,10 +2,30 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { ArrowLeft, Pause, Play, Square, Activity, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Pause, Play, Square, Activity, AlertCircle, CheckCircle2, Volume2, VolumeX } from 'lucide-react';
 import { PoseOverlay } from '../components/exercise/PoseOverlay';
 import { ExerciseFeedback } from '../components/exercise/ExerciseFeedback';
 import { RepCounter } from '../components/exercise/RepCounter';
+import { SignalPlot } from '../components/exercise/SignalPlot';
+import type { SignalPoint } from '../components/exercise/SignalPlot';
+
+interface LiveState {
+    phase: string;
+    tHi: number;
+    tLo: number;
+    unit: string;
+    twoSided: boolean;
+    holdProgress: number;
+    calibrationProgress: number;
+    repsBySide: { left: number; right: number } | null;
+}
+
+const speak = (text: string) => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+};
+
 
 export const LiveExercise = () => {
     const { id } = useParams();
@@ -23,6 +43,12 @@ export const LiveExercise = () => {
     const [status, setStatus] = useState('Connecting...');
     const [feedback, setFeedback] = useState('Please wait...');
     const [isPaused, setIsPaused] = useState(false);
+    const [live, setLive] = useState<LiveState | null>(null);
+    const [signal, setSignal] = useState<SignalPoint[]>([]);
+    // Spoken cues matter most for side-on exercises, where the user can't see the screen
+    const [voiceOn, setVoiceOn] = useState(true);
+    const voiceOnRef = useRef(voiceOn);
+    voiceOnRef.current = voiceOn;
     const [sessionFinished, setSessionFinished] = useState(false);
     
     const [duration, setDuration] = useState(0);
@@ -98,6 +124,28 @@ export const LiveExercise = () => {
                                     setFormScore(data.form_score);
                                     setStatus(data.status);
                                     setFeedback(data.feedback);
+                                    if (data.phase) {
+                                        setLive({
+                                            phase: data.phase,
+                                            tHi: data.t_hi,
+                                            tLo: data.t_lo,
+                                            unit: data.unit,
+                                            twoSided: data.two_sided,
+                                            holdProgress: data.hold_progress,
+                                            calibrationProgress: data.calibration_progress,
+                                            repsBySide: data.reps_by_side,
+                                        });
+                                        if (data.signal !== null && data.signal !== undefined) {
+                                            const t = performance.now() / 1000;
+                                            setSignal(prev => [...prev.filter(p => t - p.t <= 15), { t, v: data.signal }]);
+                                        }
+                                        if (voiceOnRef.current) {
+                                            if (data.event === 'calibrated') speak('Ready. Start when you like.');
+                                            else if (data.event === 'reached') speak('Hold');
+                                            else if (data.event === 'held') speak('And relax');
+                                            else if (data.event === 'rep') speak(String(data.reps));
+                                        }
+                                    }
                                 } else {
                                     setStatus(data.status);
                                     setFeedback(data.feedback);
@@ -142,7 +190,8 @@ export const LiveExercise = () => {
         wsRef.current.send(JSON.stringify({
             type: 'landmarks',
             data: landmarks,
-            dimensions: dims
+            dimensions: dims,
+            t: performance.now() / 1000
         }));
     }, []);
 
@@ -296,6 +345,14 @@ export const LiveExercise = () => {
                 </div>
                 
                 <div className="flex space-x-3">
+                    <Button
+                        variant="outline"
+                        onClick={() => setVoiceOn(v => !v)}
+                        aria-pressed={voiceOn}
+                        aria-label={voiceOn ? 'Turn spoken counts off' : 'Turn spoken counts on'}
+                    >
+                        {voiceOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                    </Button>
                     <Button 
                         variant="outline" 
                         className={isPaused ? "border-green-200 text-green-700 bg-green-50" : "border-yellow-200 text-yellow-700 bg-yellow-50"}
@@ -321,6 +378,33 @@ export const LiveExercise = () => {
                 {/* HUD Sidebar */}
                 <div className="flex flex-col space-y-4">
                     <RepCounter reps={reps} targetReps={TARGET_REPS} />
+                    {live && live.phase === 'calibrating' && (
+                        <Card className="bg-white border-0 shadow-lg rounded-2xl">
+                            <CardContent className="p-5">
+                                <p className="text-sm font-semibold text-gray-900 mb-2">Measuring your start position</p>
+                                <div className="w-full bg-gray-100 rounded-full h-2">
+                                    <div className="h-2 rounded-full bg-[#4F8EF7] transition-all duration-200" style={{ width: `${live.calibrationProgress * 100}%` }} />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {live && live.phase === 'active' && (
+                        <Card className="bg-white border-0 shadow-lg rounded-2xl">
+                            <CardContent className="p-5">
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-sm font-semibold text-gray-900">Your movement</p>
+                                    {live.repsBySide && (
+                                        <p className="text-xs text-gray-500">Left {live.repsBySide.left} · Right {live.repsBySide.right}</p>
+                                    )}
+                                </div>
+                                <SignalPlot points={signal} tHi={live.tHi} tLo={live.tLo} twoSided={live.twoSided} unit={live.unit} />
+                                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-3" aria-label="Hold progress">
+                                    <div className="h-1.5 rounded-full bg-green-500 transition-all duration-150" style={{ width: `${live.holdProgress * 100}%` }} />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">A rep counts when the line passes the target, is held, then comes back under the return line.</p>
+                            </CardContent>
+                        </Card>
+                    )}
                     <ExerciseFeedback formScore={formScore} status={status} feedback={feedback} />
                 </div>
             </div>

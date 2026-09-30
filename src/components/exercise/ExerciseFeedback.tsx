@@ -69,7 +69,7 @@ export const ExerciseFeedback: React.FC<ExerciseFeedbackProps> = ({ formScore, s
             </Card>
             
             <p className="text-xs text-center text-gray-400 px-4 mt-2">
-                Exercise form feedback is AI-generated and is intended for educational purposes only. Stop if you experience pain or discomfort and consult a qualified physiotherapist when appropriate.
+                Form feedback is calculated automatically from your camera and is for guidance only. Stop if you experience pain or discomfort and consult a qualified physiotherapist when appropriate.
             </p>
         </>
     );

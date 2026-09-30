@@ -4,6 +4,9 @@ import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft, Clock, Target, AlertTriangle, Lightbulb, PlayCircle } from 'lucide-react';
 
+// Exercises with a live camera analyser (backend/app/ai/exercises/exercise_factory.py)
+const LIVE_EXERCISES = ['Neck Side-Bend Stretch', 'Wall Angels', 'Shoulder Shrugs', 'Chin Tucks'];
+
 export const ExerciseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -64,7 +67,7 @@ export const ExerciseDetail = () => {
           <h1 className="text-4xl font-bold tracking-tight">{exercise.name}</h1>
           <p className="mt-2 text-gray-200 max-w-2xl">{exercise.description}</p>
           <div className="mt-6 flex gap-4">
-            {exercise.name === 'Chin Tucks' ? (
+            {LIVE_EXERCISES.includes(exercise.name) ? (
                 <Button onClick={() => navigate(`/dashboard/exercises/${exercise.id}/live`)} size="lg" className="bg-[#4F8EF7] hover:bg-blue-600 text-white border-0 shadow-lg shadow-blue-900/20">
                 <PlayCircle className="w-5 h-5 mr-2" />
                 Start Live Exercise
@@ -73,7 +76,7 @@ export const ExerciseDetail = () => {
                 <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
                     <p className="text-sm font-medium text-white flex items-center">
                         <AlertTriangle className="w-4 h-4 mr-2 text-yellow-300" />
-                        Live analysis is currently available for Chin Tucks.
+                        Live analysis is currently available for {LIVE_EXERCISES.join(', ')}.
                     </p>
                 </div>
             )}
