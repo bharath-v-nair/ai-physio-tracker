@@ -23,6 +23,8 @@ export const Assessment = () => {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [sessionScores, setSessionScores] = useState<number[]>([]);
+  // How many scored frames showed each issue, so the saved result reflects the whole session
+  const issueCountsRef = useRef<Record<string, number>>({});
   
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,6 +56,9 @@ export const Assessment = () => {
             setAnalysis(data.analysis);
             if (data.analysis.score > 0) {
               setSessionScores(prev => [...prev, data.analysis.score]);
+              for (const issue of data.analysis.issues as Issue[]) {
+                issueCountsRef.current[issue.name] = (issueCountsRef.current[issue.name] || 0) + 1;
+              }
             }
           }
           
@@ -164,6 +169,11 @@ export const Assessment = () => {
       const avgScore = sessionScores.length > 0 
         ? sessionScores.reduce((a, b) => a + b, 0) / sessionScores.length
         : 0;
+
+      // Save the issue seen most often, if it showed up in at least a quarter of the frames
+      const [topIssue, topCount] = Object.entries(issueCountsRef.current)
+        .sort((a, b) => b[1] - a[1])[0] || ["None", 0];
+      const detectedIssue = topCount >= sessionScores.length / 4 ? topIssue : "None";
         
       const token = localStorage.getItem('token');
       // 1. Save Assessment
@@ -175,7 +185,7 @@ export const Assessment = () => {
         },
         body: JSON.stringify({
           posture_score: Math.round(avgScore),
-          detected_issue: analysis?.issues[0]?.name || "None",
+          detected_issue: detectedIssue,
           confidence: analysis?.confidence || 0
         })
       });
