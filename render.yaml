@@ -1,25 +1,20 @@
 services:
   - type: web
     name: physioai-backend
-    env: python
+    runtime: python
     rootDir: backend
     plan: free
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    buildCommand: "bash build.sh"
+    startCommand: "alembic upgrade head && python -m app.database.seeder && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
       - key: DATABASE_URL
-        fromDatabase:
-          name: physioai-db
-          property: connectionString
+        sync: false # Paste the Neon connection string in the Render Dashboard
       - key: GEMINI_API_KEY
-        sync: false # You will need to enter this in the Render Dashboard
+        sync: false # Paste the Google AI Studio key in the Render Dashboard
       - key: GEMINI_MODEL
         value: gemini-flash-latest
-
-databases:
-  - name: physioai-db
-    databaseName: physioai
-    user: physioai_user
-    plan: free
+      - key: SECRET_KEY
+        generateValue: true
