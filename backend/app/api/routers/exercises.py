@@ -2,7 +2,7 @@ from typing import List
 from sqlalchemy import or_
 from fastapi import APIRouter, HTTPException, status
 from app.api.deps import SessionDep, CurrentUser
-from app.schemas.exercise import ExerciseCreate, ExerciseInDB
+from app.schemas.exercise import ExerciseInDB
 from app.models.exercise import Exercise
 
 router = APIRouter()
@@ -12,26 +12,12 @@ def get_exercises(db: SessionDep, current_user: CurrentUser):
     # Retired duplicates stay in the table (old sessions point to them) but are hidden
     return db.query(Exercise).filter(or_(Exercise.target_issue.is_(None), Exercise.target_issue != "retired")).all()
 
-@router.get("/{id}", response_model=ExerciseInDB)
+@router.get("/{id:int}", response_model=ExerciseInDB)
 def get_exercise(id: int, db: SessionDep, current_user: CurrentUser):
     exercise = db.query(Exercise).filter(Exercise.id == id).first()
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
     return exercise
-
-@router.post("", response_model=ExerciseInDB, status_code=status.HTTP_201_CREATED)
-def create_exercise(exercise_in: ExerciseCreate, db: SessionDep, current_user: CurrentUser):
-    exercise_db = Exercise(
-        name=exercise_in.name,
-        body_part=exercise_in.body_part,
-        description=exercise_in.description,
-        repetitions=exercise_in.repetitions,
-        duration=exercise_in.duration
-    )
-    db.add(exercise_db)
-    db.commit()
-    db.refresh(exercise_db)
-    return exercise_db
 
 from fastapi import WebSocket, WebSocketDisconnect, Query, Depends
 import json
@@ -44,6 +30,8 @@ from app.models.exercise_session import ExerciseSession
 
 @router.post("/sessions", response_model=ExerciseSessionInDB)
 def create_exercise_session(session_in: ExerciseSessionCreate, db: SessionDep, current_user: CurrentUser):
+    if not db.query(Exercise).filter(Exercise.id == session_in.exercise_id).first():
+        raise HTTPException(status_code=404, detail="Exercise not found")
     session_db = ExerciseSession(
         user_id=current_user.id,
         exercise_id=session_in.exercise_id,

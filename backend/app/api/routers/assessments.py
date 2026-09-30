@@ -11,10 +11,16 @@ import asyncio
 
 router = APIRouter()
 
-# Initialize AI components
-# In production, consider a dependency or pooling for better scaling
-pose_detector = PoseDetector()
+# MediaPipe is started on the first posture check, not when the server loads
+_pose_detector = None
 posture_analyzer = PostureAnalyzer()
+
+
+def get_pose_detector() -> PoseDetector:
+    global _pose_detector
+    if _pose_detector is None:
+        _pose_detector = PoseDetector()
+    return _pose_detector
 
 @router.websocket("/ws/live")
 async def websocket_endpoint(websocket: WebSocket, token: str = Query(...), db = Depends(get_db)):
@@ -45,7 +51,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(...), db =
                 
             # Process in thread pool to avoid blocking async loop
             # For simplicity in this sprint, we run it directly (mediapipe is fast)
-            landmarks, world, (w, h) = pose_detector.process_frame_with_world(base64_img)
+            landmarks, world, (w, h) = get_pose_detector().process_frame_with_world(base64_img)
             analysis = posture_analyzer.analyze(landmarks, world, (w, h), view)
             recorder.record(landmarks, analysis)
             

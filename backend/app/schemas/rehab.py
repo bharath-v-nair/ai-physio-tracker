@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -48,12 +48,12 @@ class ExerciseSessionCreate(BaseModel):
     exercise_id: int
     plan_id: Optional[int] = None
     skipped: bool = False
-    notes: Optional[str] = None
-    completed_reps: Optional[int] = None
-    target_reps: Optional[int] = None
-    form_score: Optional[int] = None
-    duration: Optional[int] = None
-    feedback: Optional[str] = None
+    notes: Optional[str] = Field(default=None, max_length=500)
+    completed_reps: Optional[int] = Field(default=None, ge=0, le=1000)
+    target_reps: Optional[int] = Field(default=None, ge=0, le=1000)
+    form_score: Optional[int] = Field(default=None, ge=0, le=100)
+    duration: Optional[int] = Field(default=None, ge=0, le=86400)   # seconds
+    feedback: Optional[str] = Field(default=None, max_length=500)
 
 class ExerciseSessionInDB(ExerciseSessionCreate):
     id: int

@@ -7,6 +7,7 @@ from app.models.user import User
 from app.models.assessment import Assessment
 from app.models.rehab_plan import RehabPlan
 from app.models.exercise_session import ExerciseSession
+from app.models.exercise import Exercise
 from app.schemas.rehab import RehabPlanInDB, ExerciseSessionCreate, ExerciseSessionInDB, RecommendationRequest, RecommendationResponse
 from app.services.recommendation_engine import RecommendationEngine
 
@@ -82,6 +83,8 @@ def track_exercise(
     """
     Tracks the completion (or skipping) of an exercise.
     """
+    if not db.query(Exercise).filter(Exercise.id == session_in.exercise_id).first():
+        raise HTTPException(status_code=404, detail="Exercise not found")
     new_session = ExerciseSession(
         user_id=current_user.id,
         exercise_id=session_in.exercise_id,
