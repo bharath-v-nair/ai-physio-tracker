@@ -1,91 +1,53 @@
-from .base_exercise import BaseExerciseAnalyzer, RepState
-from typing import Dict, Any, List
 import math
 
-class ChinTucksAnalyzer(BaseExerciseAnalyzer):
-    def __init__(self):
-        super().__init__()
-        self.baseline_dist = None
-        self.hold_frames = 0
+from .base_exercise import TrackedExercise
+from .rep_engine import EngineConfig
 
-    def analyze(self, landmarks: List[Dict[str, float]], dimensions: tuple) -> Dict[str, Any]:
-        if not landmarks or len(landmarks) < 33:
-            return {
-                "reps": self.reps,
-                "form_score": self.get_average_score(),
-                "status": "No pose detected",
-                "feedback": "Please step into the camera view."
-            }
 
-        # MediaPipe Landmarks: 0: nose, 7: left ear, 8: right ear, 11: left shoulder, 12: right shoulder
-        nose = landmarks[0]
-        l_shoulder = landmarks[11]
-        r_shoulder = landmarks[12]
-        
-        # Calculate vertical distance from nose to shoulder center
-        shoulder_y = (l_shoulder['y'] + r_shoulder['y']) / 2.0
-        vert_dist = shoulder_y - nose['y']
-        
-        status = "Good Form"
-        
-        # Initialize or update smooth baseline when resting
-        if self.baseline_dist is None:
-            self.baseline_dist = vert_dist
-        
-        # Movement calculation relative to baseline
-        diff = vert_dist - self.baseline_dist
+class ChinTucksAnalyzer(TrackedExercise):
+    """
+    Chin tucks seen from the SIDE. A chin tuck glides the head straight back, which a
+    front camera can barely see. From the side the ear moves back over the shoulder,
+    so the ear-shoulder angle rises by roughly 5-12 degrees.
+    A nod swings the eyes around the ear, so the eye-ear line is used to catch nodding.
+    """
+    config = EngineConfig(amplitude=8.0, min_reach=4.0, min_return=1.5, hold_seconds=2.0,
+                          unit="°", max_noise=2.5, min_noise=0.4)
+    required = (0,)
+    not_visible_hint = "Turn sideways so the camera sees your ear and shoulder."
+    calibrate_hint = "Sit sideways, look straight ahead and hold still."
+    rest_hint = "Glide your head straight back, making a double chin."
+    hold_hint = "Hold the tuck..."
+    release_hint = "Now relax forward to the start."
 
-        # State Machine Logic
-        if self.state == RepState.REST:
-            # Update baseline dynamically while at rest
-            self.baseline_dist = 0.9 * self.baseline_dist + 0.1 * vert_dist
-            
-            if diff > 0.015:  # Head moved down/tucked towards chest
-                self.state = RepState.MOVING
-                self.feedback = "Good! Continue tucking chin down & back."
-            else:
-                self.feedback = "Pull your chin straight back towards your neck."
+    def _side(self, lms):
+        # Use the ear (and matching shoulder and eye) that faces the camera
+        if lms[7]["visibility"] >= lms[8]["visibility"]:
+            return 7, 11, 3
+        return 8, 12, 6
 
-        elif self.state == RepState.MOVING:
-            if diff > 0.025:  # Tuck threshold reached
-                self.state = RepState.TARGET_REACHED
-                self.hold_frames = 0
-                self.feedback = "Great tuck! Hold for a moment..."
-            elif diff < -0.02:  # Moving head up/forward instead
-                self.current_rep_score = max(50.0, self.current_rep_score - 0.5)
-                self.feedback = "Don't tilt head up; pull chin back."
-                status = "Needs Improvement"
-            elif diff <= 0.01: # Aborted movement, returned to rest
-                self.state = RepState.REST
-                self.feedback = "Pull your chin straight back towards your neck."
-            else:
-                self.feedback = "Keep pulling chin back."
+    def features(self, lms, P):
+        ear, shoulder, eye = self._side(lms)
+        if min(lms[ear]["visibility"], lms[shoulder]["visibility"]) < 0.65:
+            return None
+        E, S, Y, N = P[ear], P[shoulder], P[eye], P[0]
+        neck = S[1] - E[1]
+        if neck <= 0:
+            return None
+        facing = 1 if N[0] > E[0] else -1
+        # Side-on check: both shoulders overlap and the nose is clearly ahead of the ear
+        if abs(P[11][0] - P[12][0]) > 0.35 * neck or facing * (N[0] - E[0]) < 0.3 * neck:
+            return None
+        esa = math.degrees(math.atan2(S[1] - E[1], facing * (E[0] - S[0])))
+        tilt = math.degrees(math.atan2(E[1] - Y[1], facing * (Y[0] - E[0])))
+        return {"signal": esa, "tilt": tilt, "shoulder_x": facing * S[0], "neck": neck}
 
-        elif self.state == RepState.TARGET_REACHED:
-            self.hold_frames += 1
-            if self.hold_frames >= 5:  # ~0.5 sec hold
-                self.state = RepState.RETURNING
-                self.feedback = "Now slowly release back to neutral."
+    def position_hint(self, lms, P):
+        return "Turn your chair so one shoulder points at the screen, then look straight ahead."
 
-        elif self.state == RepState.RETURNING:
-            if diff <= 0.01:  # Returned close to neutral
-                self.state = RepState.REP_COMPLETED
-
-        elif self.state == RepState.REP_COMPLETED:
-            self.reps += 1
-            score = max(0, min(100, int(self.current_rep_score)))
-            self.form_scores.append(score)
-            self.current_rep_score = 100.0  # reset for next rep
-            self.feedback = f"Great rep! ({self.reps} completed)"
-            self.state = RepState.REST
-
-        # Calculate live form score clamped between 0 and 100
-        avg_score = self.get_average_score()
-        current_score = max(0, min(100, int(self.current_rep_score if not self.form_scores else (avg_score + self.current_rep_score) / 2)))
-
-        return {
-            "reps": self.reps,
-            "form_score": current_score,
-            "status": status,
-            "feedback": self.feedback
-        }
+    def fault(self, f):
+        if abs(f["tilt"] - self.ref["tilt"]) > 10:
+            return "Glide straight back. Don't nod or lift your chin."
+        if abs(f["shoulder_x"] - self.ref["shoulder_x"]) > 0.10 * self.ref["neck"]:
+            return "Keep your back still and move only your head."
+        return None

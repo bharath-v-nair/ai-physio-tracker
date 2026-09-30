@@ -1,4 +1,5 @@
 from typing import List
+from sqlalchemy import or_
 from fastapi import APIRouter, HTTPException, status
 from app.api.deps import SessionDep, CurrentUser
 from app.schemas.exercise import ExerciseCreate, ExerciseInDB
@@ -8,9 +9,8 @@ router = APIRouter()
 
 @router.get("", response_model=List[ExerciseInDB])
 def get_exercises(db: SessionDep, current_user: CurrentUser):
-    # Depending on requirements, exercises might be global or user-specific. 
-    # For now, we return all exercises.
-    return db.query(Exercise).all()
+    # Retired duplicates stay in the table (old sessions point to them) but are hidden
+    return db.query(Exercise).filter(or_(Exercise.target_issue.is_(None), Exercise.target_issue != "retired")).all()
 
 @router.get("/{id}", response_model=ExerciseInDB)
 def get_exercise(id: int, db: SessionDep, current_user: CurrentUser):
@@ -93,36 +93,19 @@ async def live_exercise_endpoint(websocket: WebSocket, token: str = Query(...), 
                 frame_data = message.get("data")
                 landmarks, dims = pose_detector.process_frame(frame_data)
                 
-                analysis = analyzer.analyze(landmarks, dims)
+                analysis = analyzer.analyze(landmarks, dims, message.get("t"))
                 recorder.record(landmarks, analysis)
                 
-                await websocket.send_json({
-                    "type": "analysis_result",
-                    "data": {
-                        "reps": analysis["reps"],
-                        "form_score": analysis["form_score"],
-                        "status": analysis["status"],
-                        "feedback": analysis["feedback"],
-                        "landmarks": landmarks
-                    }
-                })
+                await websocket.send_json({"type": "analysis_result", "data": {**analysis, "landmarks": landmarks}})
             elif message.get("type") == "landmarks":
                 landmarks = message.get("data")
                 dims = message.get("dimensions", (640, 480))
                 
-                analysis = analyzer.analyze(landmarks, dims)
+                # "t" is the browser's timestamp in seconds, so holds are timed by the clock, not the frame rate
+                analysis = analyzer.analyze(landmarks, dims, message.get("t"))
                 recorder.record(landmarks, analysis)
                 
-                await websocket.send_json({
-                    "type": "analysis_result",
-                    "data": {
-                        "reps": analysis["reps"],
-                        "form_score": analysis["form_score"],
-                        "status": analysis["status"],
-                        "feedback": analysis["feedback"],
-                        "landmarks": landmarks
-                    }
-                })
+                await websocket.send_json({"type": "analysis_result", "data": analysis})
     except WebSocketDisconnect:
         pass
     except Exception as e:
