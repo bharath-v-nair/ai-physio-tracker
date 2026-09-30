@@ -14,12 +14,37 @@ export const Auth = ({ mode = 'login' }: { mode?: 'login' | 'register' }) => {
     try {
       const emailInput = document.getElementById('email') as HTMLInputElement;
       const passwordInput = document.getElementById('password') as HTMLInputElement;
-      
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+      // Sign up: create the account first, then log in with the same details below
+      if (mode === 'register') {
+        const nameInput = document.getElementById('name') as HTMLInputElement;
+        const registerResponse = await fetch(`${apiUrl}/api/v1/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: nameInput.value,
+            email: emailInput.value,
+            password: passwordInput.value,
+          }),
+        });
+        if (!registerResponse.ok) {
+          const error = await registerResponse.json().catch(() => null);
+          const detail = error?.detail;
+          alert(
+            typeof detail === 'string'
+              ? detail
+              : 'Sign up failed. Please use a valid email and a password of at least 8 characters.'
+          );
+          return;
+        }
+      }
+
       const formData = new URLSearchParams();
       formData.append('username', emailInput.value);
       formData.append('password', passwordInput.value);
       
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/v1/auth/login`, {
+      const response = await fetch(`${apiUrl}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),
@@ -30,7 +55,7 @@ export const Auth = ({ mode = 'login' }: { mode?: 'login' | 'register' }) => {
         localStorage.setItem('token', data.access_token);
         navigate('/dashboard');
       } else {
-        alert('Login failed. Please use test@test.com / password');
+        alert('Login failed. Please check your email and password.');
       }
     } catch (err) {
       console.error(err);

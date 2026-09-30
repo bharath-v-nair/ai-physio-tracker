@@ -28,7 +28,9 @@ export const Assessment = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const requestRef = useRef<number>(0);
-  
+  // Time the last frame was sent while waiting for its result (0 = not waiting)
+  const pendingSinceRef = useRef<number>(0);
+
   const navigate = useNavigate();
 
   // Connect to WebSocket
@@ -45,6 +47,7 @@ export const Assessment = () => {
       };
       
       ws.onmessage = (event) => {
+        pendingSinceRef.current = 0;
         try {
           const data = JSON.parse(event.data);
           if (data.analysis) {
@@ -67,10 +70,16 @@ export const Assessment = () => {
       
       // Start frame capture loop
       const captureFrame = () => {
-        if (webcamRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
+        // Only send a new frame once the server has answered the previous one
+        // (or after 2s, in case a reply got lost). On a slow server this stops
+        // frames from piling up and the skeleton lagging further and further behind.
+        const now = Date.now();
+        const canSend = pendingSinceRef.current === 0 || now - pendingSinceRef.current > 2000;
+        if (canSend && webcamRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
           const imageSrc = webcamRef.current.getScreenshot();
           if (imageSrc) {
             wsRef.current.send(JSON.stringify({ image: imageSrc }));
+            pendingSinceRef.current = now;
           }
         }
         // Run ~10 fps

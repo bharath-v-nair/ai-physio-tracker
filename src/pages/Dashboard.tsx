@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { mockUserData } from '../utils/mockData';
+import { useUserProfile } from '../utils/useUserProfile';
 import { Activity, Target, Flame, TrendingUp, AlertCircle, Dumbbell } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Button } from '../components/ui/Button';
@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 export const Dashboard = () => {
     const navigate = useNavigate();
+    const profile = useUserProfile();
     const [summary, setSummary] = useState<any>(null);
     const [progress, setProgress] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -75,7 +76,7 @@ export const Dashboard = () => {
         <div className="space-y-8 animate-in fade-in duration-500 pb-12">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome back, {mockUserData.name.split(' ')[0]}</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome back{profile ? `, ${profile.full_name.split(' ')[0]}` : ''}</h1>
                     <p className="text-gray-500 mt-1">Here is a summary of your exercise progress.</p>
                 </div>
                 {hasData && (
