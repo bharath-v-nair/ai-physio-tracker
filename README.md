@@ -51,10 +51,10 @@ An intelligent, real-time computer vision physical therapy and posture rehabilit
 * **Routing**: React Router DOM v6
 
 ### **Backend**
-* **Framework**: FastAPI (Python 3.9+)
+* **Framework**: FastAPI (Python 3.11)
 * **AI / CV**: Google MediaPipe Pose, OpenCV, NumPy
 * **Real-time Streaming**: WebSockets
-* **Database**: SQLite with SQLAlchemy ORM
+* **Database**: SQLite locally, PostgreSQL (Neon) in production, with SQLAlchemy ORM
 * **Database Migrations**: Alembic
 * **Auth**: JWT Authentication with Password Hashing (Bcrypt)
 
@@ -64,7 +64,7 @@ An intelligent, real-time computer vision physical therapy and posture rehabilit
 
 ### Prerequisites
 * **Node.js** (v18+) & **npm**
-* **Python** (3.9+)
+* **Python** (3.11, MediaPipe does not support 3.13+)
 
 ---
 
@@ -75,14 +75,18 @@ An intelligent, real-time computer vision physical therapy and posture rehabilit
 cd backend
 
 # Create and activate virtual environment
-python -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run database migrations
+# Create your settings file (add your Gemini API key inside it)
+cp .env.example .env
+
+# Run database migrations and load the exercise library
 alembic upgrade head
+python -m app.database.seeder
 
 # Start the FastAPI server
 uvicorn main:app --reload --port 8000
@@ -97,7 +101,7 @@ Open a **new terminal window**:
 
 ```bash
 # Navigate to project root directory
-cd "Ai Physio tracker"
+cd ai-physio-tracker
 
 # Install dependencies
 npm install
@@ -106,6 +110,12 @@ npm install
 npm run dev
 ```
 Frontend web application will run on: `http://localhost:5175` (or `http://localhost:5173`)
+
+---
+
+## ☁️ Deployment
+
+The app is deployed with the frontend on **Vercel**, the backend on **Render** and the database on **Neon**. See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for step-by-step instructions.
 
 ---
 
